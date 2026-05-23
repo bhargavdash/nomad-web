@@ -1,0 +1,219 @@
+@import "tailwindcss";
+
+/* =========================================================================
+   Nomad Design Tokens — exact values from c:/Users/DELL/code/nomad/.claude/rules/design-tokens.md
+   ========================================================================= */
+
+@theme {
+  /* Colors */
+  --color-ember: #C4623A;
+  --color-ember-dim: #A84E2A;
+  --color-ember-light: #F5E8E0;
+  --color-peach: #E8A87C;
+  --color-peach-light: #FDF0E8;
+
+  --color-navy: #1B2B4B;
+  --color-navy-2: #162340;
+  --color-navy-3: #111820;
+  --color-card-dark: #1C2634;
+
+  --color-cream: #F5F0E8;
+  --color-cream-2: #E8E0D0;
+  --color-warm-white: #FDFAF5;
+
+  --color-ink: #2A2520;
+  --color-muted: #8A8070;
+  --color-border-soft: #DDD8CC;
+
+  --color-sage: #2A7A56;
+  --color-sage-light: #E0F0E8;
+  --color-sky-blue: #2E6FAA;
+  --color-sky-light: #E0EEF8;
+
+  --color-yt: #E8593C;
+  --color-reddit: #FF4500;
+  --color-blog: #2A7A56;
+  --color-maps: #2E6FAA;
+
+  /* Font families — wired up via next/font CSS variables in app/layout.tsx */
+  --font-display: var(--font-playfair), Georgia, serif;
+  --font-sans: var(--font-dm-sans), -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: var(--font-dm-mono), ui-monospace, monospace;
+
+  /* Border radius */
+  --radius-pill: 100px;
+  --radius-card: 18px;
+  --radius-card-lg: 20px;
+  --radius-input: 14px;
+  --radius-chip: 100px;
+  --radius-icon: 10px;
+
+  /* Shadows — converted from RN spec */
+  --shadow-card: 0 2px 12px rgba(27, 43, 75, 0.08);
+  --shadow-card-hover: 0 4px 20px rgba(0, 0, 0, 0.12);
+  --shadow-postcard: 0 4px 20px rgba(0, 0, 0, 0.35);
+  --shadow-fab: 0 4px 16px rgba(28, 25, 23, 0.35);
+  --shadow-active-trip: 0 8px 32px rgba(27, 43, 75, 0.25);
+  --shadow-context-menu: 0 20px 40px rgba(0, 0, 0, 0.45);
+  --shadow-ember-hover: 0 10px 28px rgba(196, 98, 58, 0.3);
+}
+
+/* Type-scale utilities — Playfair Display headings, DM Sans body, DM Mono numerics.
+   Names mirror typography.ts tokens. */
+@layer utilities {
+  .text-display-xl {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 56px;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+  }
+  .text-display-l {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 42px;
+    line-height: 1.1;
+    letter-spacing: -0.015em;
+  }
+  .text-display-m {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 32px;
+    line-height: 1.15;
+  }
+  .text-display-s {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 22px;
+    line-height: 1.2;
+  }
+  .text-card-title {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 20px;
+    line-height: 1.25;
+  }
+  .text-card-title-s {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 16px;
+    line-height: 1.3;
+  }
+  .text-body-l {
+    font-family: var(--font-sans);
+    font-weight: 400;
+    font-size: 17px;
+    line-height: 1.6;
+  }
+  .text-body-m {
+    font-family: var(--font-sans);
+    font-weight: 400;
+    font-size: 15px;
+    line-height: 1.55;
+  }
+  .text-body-s {
+    font-family: var(--font-sans);
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 1.55;
+  }
+  .text-body-xs {
+    font-family: var(--font-sans);
+    font-weight: 400;
+    font-size: 13px;
+    line-height: 1.55;
+  }
+  .text-label-m {
+    font-family: var(--font-sans);
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 1.3;
+  }
+  .text-label-s {
+    font-family: var(--font-sans);
+    font-weight: 500;
+    font-size: 12px;
+    line-height: 1.3;
+  }
+  .text-label-xs {
+    font-family: var(--font-sans);
+    font-weight: 500;
+    font-size: 11px;
+    line-height: 1.3;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+  }
+  .text-mono-m {
+    font-family: var(--font-mono);
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 1.4;
+  }
+  .text-mono-s {
+    font-family: var(--font-mono);
+    font-weight: 400;
+    font-size: 12px;
+    line-height: 1.4;
+  }
+  .text-mono-xs {
+    font-family: var(--font-mono);
+    font-weight: 400;
+    font-size: 10px;
+    line-height: 1.4;
+    letter-spacing: 0.05em;
+  }
+
+  /* The recurring ember-italic editorial accent.
+     Use on a <span> inside a display heading. */
+  .text-wander {
+    font-family: var(--font-display);
+    font-style: italic;
+    color: var(--color-ember);
+    font-weight: inherit;
+  }
+
+  /* Shadow utilities matching design-tokens.md */
+  .shadow-card { box-shadow: var(--shadow-card); }
+  .shadow-card-hover { box-shadow: var(--shadow-card-hover); }
+  .shadow-postcard { box-shadow: var(--shadow-postcard); }
+  .shadow-fab { box-shadow: var(--shadow-fab); }
+  .shadow-active-trip { box-shadow: var(--shadow-active-trip); }
+  .shadow-context-menu { box-shadow: var(--shadow-context-menu); }
+  .shadow-ember-hover { box-shadow: var(--shadow-ember-hover); }
+}
+
+/* Base reset/body */
+html,
+body {
+  background: var(--color-cream);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom keyframes used across the app */
+@keyframes orb-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.06); }
+}
+@keyframes orb-ring {
+  0% { transform: scale(1); opacity: 0.6; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+@keyframes shake {
+  0% { transform: translateX(0); }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(6px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
+  100% { transform: translateX(0); }
+}
+
+.animate-orb-pulse { animation: orb-pulse 2s ease-in-out infinite; }
+.animate-orb-ring { animation: orb-ring 2s ease-in-out infinite; }
+.animate-shake { animation: shake 0.4s ease; }
+
+/* Custom scrollbar hidden utility for horizontal carousels */
+.scrollbar-none::-webkit-scrollbar { display: none; }
+.scrollbar-none { scrollbar-width: none; }
