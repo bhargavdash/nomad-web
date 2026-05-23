@@ -36,11 +36,18 @@ export default function SignInPage() {
   };
 
   const handleGoogle = async () => {
-    const { error } = await supabase().auth.signInWithOAuth({
+    const redirectTo = `${window.location.origin}/auth/callback`;
+    console.log("[signin] Initiating Google OAuth", { redirectTo });
+    const { data, error } = await supabase().auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
+      options: { redirectTo },
     });
-    if (error) toast.error(error.message);
+    if (error) {
+      console.error("[signin] Google OAuth initiation failed:", error.message, error);
+      toast.error(error.message);
+      return;
+    }
+    console.log("[signin] Redirecting to Google OAuth URL", { url: data?.url });
   };
 
   return (
