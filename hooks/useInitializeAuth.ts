@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import type { AuthChangeEvent, Session } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase/client";
 import { useAuthStore } from "@/store/authStore";
 
@@ -25,7 +26,7 @@ export function useInitializeAuth() {
 
     initialize();
 
-    const { data: sub } = sb.auth.onAuthStateChange((_event, session) => {
+    const { data: sub } = sb.auth.onAuthStateChange((_event: AuthChangeEvent, session: Session | null) => {
       setSession(session);
       if (session) {
         syncProfile().then(() => fetchProfile());
