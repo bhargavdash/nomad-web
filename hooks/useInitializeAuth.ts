@@ -13,13 +13,17 @@ export function useInitializeAuth() {
   useEffect(() => {
     const sb = supabase();
 
-    sb.auth.getSession().then(({ data }) => {
+    const initialize = async () => {
+      const { data } = await sb.auth.getSession();
       setSession(data.session);
       setInitialized();
       if (data.session) {
-        syncProfile().then(() => fetchProfile());
+        await syncProfile();
+        await fetchProfile();
       }
-    });
+    };
+
+    initialize();
 
     const { data: sub } = sb.auth.onAuthStateChange((_event, session) => {
       setSession(session);

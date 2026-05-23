@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:github.com)",
+      "WebSearch",
+      "WebFetch(domain:www.npmjs.com)",
+      "WebFetch(domain:photon.komoot.io)",
+      "Bash(npm run build)",
+      "Bash(npm run dev)",
+      "Bash(npm run lint)",
+      "Bash(npx tsc --noEmit)",
+      "Bash(npx skills:*)",
+      "mcp__stitch__list_projects",
+      "mcp__stitch__get_screen",
+      "mcp__magic__21st_magic_component_builder",
+      "mcp__magic__21st_magic_component_refiner",
+      "mcp__magic__21st_magic_component_inspiration",
+      "mcp__magic__logo_search"
+    ]
+  }
+}
