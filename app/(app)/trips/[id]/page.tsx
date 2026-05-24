@@ -42,6 +42,30 @@ export default function ItineraryPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tripId]);
 
+  React.useEffect(() => {
+    if (!data) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((e) => e.isIntersecting)
+          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+        if (visible.length > 0) {
+          const id = visible[0].target.getAttribute("data-day-id");
+          if (id) setActiveDayId(id);
+        }
+      },
+      { rootMargin: "-100px 0px -55% 0px", threshold: 0 },
+    );
+    data.days.forEach((day) => {
+      const el = document.getElementById(`day-${day.id}`);
+      if (el) {
+        el.setAttribute("data-day-id", day.id);
+        observer.observe(el);
+      }
+    });
+    return () => observer.disconnect();
+  }, [data]);
+
   const handleLockToggle = async (stop: TripStop) => {
     try {
       const res = await api.patch<{ stop: TripStop }>(`/trips/${tripId}/stops/${stop.id}`, {

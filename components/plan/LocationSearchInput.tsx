@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Search, MapPin } from "lucide-react";
+import { Search, MapPin, X } from "lucide-react";
 import usePhotonSearch, {
   getDisplayLabel,
   getSubtitle,
@@ -49,13 +49,32 @@ export function LocationSearchInput({
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => setFocused(true)}
-          onBlur={() => setTimeout(() => setFocused(false), 200)}
+          onBlur={() =>
+            setTimeout(() => {
+              setFocused(false);
+              if (!query.trim()) onSelect("");
+            }, 200)
+          }
           placeholder={placeholder}
           className={cn(
-            "h-14 w-full rounded-[16px] border-[1.5px] border-[var(--color-border-soft)] bg-[var(--color-warm-white)] pl-12 pr-5 font-sans text-[16px] text-[var(--color-ink)] placeholder:text-[var(--color-muted)] outline-none transition-all",
+            "h-14 w-full rounded-[16px] border-[1.5px] border-[var(--color-border-soft)] bg-[var(--color-warm-white)] pl-12 pr-12 font-sans text-[16px] text-[var(--color-ink)] placeholder:text-[var(--color-muted)] outline-none transition-all",
             "focus:border-[var(--color-ember)] focus:ring-[3px] focus:ring-[var(--color-ember)]/15",
           )}
         />
+        {query && (
+          <button
+            type="button"
+            aria-label="Clear location"
+            onMouseDown={(e) => {
+              e.preventDefault();
+              setQuery("");
+              onSelect("");
+            }}
+            className="absolute right-4 top-1/2 -translate-y-1/2 flex h-6 w-6 items-center justify-center rounded-full text-[var(--color-muted)] hover:bg-[var(--color-cream-2)] hover:text-[var(--color-ink)]"
+          >
+            <X size={14} />
+          </button>
+        )}
       </div>
 
       {open && (

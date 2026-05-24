@@ -25,7 +25,7 @@ export function HeroCTACard() {
             Ready when you are
           </span>
           <h2 className="font-display text-[44px] font-extrabold leading-[1.05] text-[var(--color-cream)] max-w-[480px]">
-            Where will the <span className="text-wander">wander</span> take you?
+            Where will the <span className="text-wander">next adventure</span> take you?
           </h2>
           <p className="mt-3 max-w-[420px] text-[15px] text-white/65">
             Tell us the vibe. We&apos;ll write the itinerary — pulled from real travellers, not

@@ -151,7 +151,7 @@ export const ACCOMMODATION_OPTIONS = [
 
 export const PACE_OPTIONS = ['Slow & Soulful', 'Balanced', 'Action-Packed'] as const;
 
-export const BUDGET_TIERS = ['$', '$$', '$$$', '$$$$'] as const;
+export const BUDGET_TIERS = ['Low', 'Medium', 'High', 'Very-High'] as const;
 
 export const TRAVELER_OPTIONS = [
   { value: '1' as const, label: '1 Person' },

@@ -13,7 +13,7 @@ export type AccommodationType =
 
 export type PaceType = "Slow & Soulful" | "Balanced" | "Action-Packed";
 
-export type BudgetTier = "$" | "$$" | "$$$" | "$$$$";
+export type BudgetTier = "Low" | "Medium" | "High" | "Very-High";
 
 export interface DateRange {
   from: string | null;
@@ -37,7 +37,7 @@ interface TripPlanActions {
   setDates: (dates: DateRange) => void;
   setTravelers: (value: TravelerCount) => void;
   toggleVibe: (vibe: string) => void;
-  setAccommodation: (value: AccommodationType) => void;
+  setAccommodation: (value: AccommodationType | null) => void;
   setPace: (value: PaceType) => void;
   setBudget: (value: BudgetTier) => void;
   setPreferences: (value: string) => void;
@@ -68,7 +68,7 @@ export const useTripPlanStore = create<TripPlanState & TripPlanActions>()((set) 
         ? state.selectedVibes.filter((v) => v !== vibe)
         : [...state.selectedVibes, vibe],
     })),
-  setAccommodation: (value) => set({ accommodation: value }),
+  setAccommodation: (value) => set({ accommodation: value ?? null }),
   setPace: (value) => set({ pace: value }),
   setBudget: (value) => set({ budget: value }),
   setPreferences: (value) => set({ preferences: value }),
