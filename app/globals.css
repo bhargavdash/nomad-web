@@ -58,6 +58,11 @@
   --shadow-ember-hover: 0 10px 28px rgba(196, 98, 58, 0.3);
 }
 
+/* Default page background — each page can override with its own bg class. */
+body {
+  background-color: var(--color-cream);
+}
+
 /* Type-scale utilities — Playfair Display headings, DM Sans body, DM Mono numerics.
    Names mirror typography.ts tokens. */
 @layer utilities {

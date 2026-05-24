@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 
 interface AccommodationGridProps {
   value: AccommodationType | null;
-  onChange: (value: AccommodationType) => void;
+  onChange: (value: AccommodationType | null) => void;
 }
 
 export function AccommodationGrid({ value, onChange }: AccommodationGridProps) {
@@ -19,7 +19,7 @@ export function AccommodationGrid({ value, onChange }: AccommodationGridProps) {
           <button
             key={opt.label}
             type="button"
-            onClick={() => onChange(opt.label as AccommodationType)}
+            onClick={() => onChange(active ? null : (opt.label as AccommodationType))}
             className={cn(
               "flex flex-col items-start gap-2 rounded-[18px] border-[1.5px] p-4 text-left transition-all duration-150 hover:-translate-y-0.5",
               active

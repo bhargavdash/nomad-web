@@ -195,6 +195,7 @@ export default function PlanPage() {
                   label={opt}
                   active={store.pace === opt}
                   onClick={() => store.setPace(opt as PaceType)}
+                  variant="terracotta"
                 />
               ))}
             </div>
@@ -208,6 +209,7 @@ export default function PlanPage() {
                   label={tier}
                   active={store.budget === tier}
                   onClick={() => store.setBudget(tier as BudgetTier)}
+                  variant="terracotta"
                 />
               ))}
             </div>
@@ -239,7 +241,7 @@ function Section({
 }) {
   return (
     <StaggerSection index={index}>
-      <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-[var(--color-ember)]">
+      <span className="font-mono text-[13px] font-medium uppercase tracking-[0.14em] text-[var(--color-ember)]">
         {eyebrow}
       </span>
       <h2 className="mt-2 mb-6 font-display text-[32px] font-bold leading-tight text-[var(--color-ink)]">

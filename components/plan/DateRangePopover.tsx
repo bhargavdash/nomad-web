@@ -3,7 +3,7 @@
 import * as React from "react";
 import { DayPicker, type DateRange as DRange } from "react-day-picker";
 import "react-day-picker/dist/style.css";
-import { Calendar as CalendarIcon } from "lucide-react";
+import { Calendar as CalendarIcon, X } from "lucide-react";
 import { format } from "date-fns";
 
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -25,9 +25,14 @@ export function DateRangePopover({ value, onChange }: DateRangePopoverProps) {
 
   const handleSelect = (range: DRange | undefined) => {
     onChange({
-      from: range?.from ? range.from.toISOString().slice(0, 10) : null,
-      to: range?.to ? range.to.toISOString().slice(0, 10) : null,
+      from: range?.from ? format(range.from, "yyyy-MM-dd") : null,
+      to: range?.to ? format(range.to, "yyyy-MM-dd") : null,
     });
+  };
+
+  const handleClear = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onChange({ from: null, to: null });
   };
 
   const label =
@@ -48,8 +53,18 @@ export function DateRangePopover({ value, onChange }: DateRangePopoverProps) {
             value.from ? "text-[var(--color-ink)]" : "text-[var(--color-muted)]",
           )}
         >
-          <CalendarIcon size={18} className="text-[var(--color-ember)]" />
-          {label}
+          <CalendarIcon size={18} className="shrink-0 text-[var(--color-ember)]" />
+          <span className="flex-1">{label}</span>
+          {(value.from || value.to) && (
+            <span
+              role="button"
+              aria-label="Clear dates"
+              onClick={handleClear}
+              className="ml-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[var(--color-muted)] hover:bg-[var(--color-cream-2)] hover:text-[var(--color-ink)]"
+            >
+              <X size={13} />
+            </span>
+          )}
         </button>
       </PopoverTrigger>
       <PopoverContent className="min-w-[640px] p-4">

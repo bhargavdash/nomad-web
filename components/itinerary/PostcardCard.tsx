@@ -29,7 +29,7 @@ export function PostcardCard({ stop, onLockToggle, onRemove, exiting }: Postcard
       className={cn(
         "relative overflow-hidden rounded-[20px] shadow-postcard transition-all duration-200",
         stop.locked
-          ? "border-[1.5px] border-[var(--color-ember)] bg-[var(--color-ember-light)]"
+          ? "border-[1.5px] border-[var(--color-ember)] bg-[var(--color-card-dark)]"
           : "bg-[var(--color-card-dark)]",
       )}
     >
@@ -83,39 +83,20 @@ export function PostcardCard({ stop, onLockToggle, onRemove, exiting }: Postcard
       </div>
 
       {/* Body */}
-      <div
-        className={cn("px-6 py-5", stop.locked ? "text-[var(--color-ink)]" : "text-white")}
-      >
+      <div className="px-6 py-5 text-white">
         <div className="flex items-baseline justify-between gap-3">
-          <h3
-            className={cn(
-              "font-display text-[22px] font-bold leading-tight",
-              stop.locked ? "text-[var(--color-ink)]" : "text-white",
-            )}
-          >
+          <h3 className="font-display text-[22px] font-bold leading-tight text-white">
             {stop.name}
           </h3>
           {stop.duration && (
-            <span
-              className={cn(
-                "shrink-0 font-mono text-[11px] uppercase tracking-[0.1em]",
-                stop.locked ? "text-[var(--color-muted)]" : "text-white/55",
-              )}
-            >
+            <span className="shrink-0 font-mono text-[11px] uppercase tracking-[0.1em] text-white/55">
               {stop.duration}
             </span>
           )}
         </div>
 
         {stop.description && (
-          <p
-            className={cn(
-              "mt-2 text-[14px] leading-[1.55]",
-              stop.locked ? "text-[var(--color-ink)]/70" : "text-white/55",
-            )}
-          >
-            {stop.description}
-          </p>
+          <p className="mt-2 text-[14px] leading-[1.55] text-white/55">{stop.description}</p>
         )}
 
         {stop.tags.length > 0 && (
@@ -126,7 +107,7 @@ export function PostcardCard({ stop, onLockToggle, onRemove, exiting }: Postcard
                 className={cn(
                   "rounded-[100px] px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.06em]",
                   stop.locked
-                    ? "bg-[var(--color-ember)]/15 text-[var(--color-ember-dim)]"
+                    ? "bg-[var(--color-ember)]/20 text-[var(--color-peach)]"
                     : "bg-white/10 text-white/65",
                 )}
               >
