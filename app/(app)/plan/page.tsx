@@ -67,7 +67,9 @@ export default function PlanPage() {
       router.push(`/trips/${trip.id}/researching`);
     } catch (err) {
       console.error("[Plan] POST /trips failed:", err);
-      toast.error("Couldn't create your trip. Please try again.");
+      const detail =
+        err instanceof Error ? err.message : JSON.stringify(err);
+      toast.error(`Failed: ${detail}`, { duration: 10000 });
     } finally {
       setSubmitting(false);
     }
