@@ -184,6 +184,44 @@ export default function ItineraryPage() {
         </div>
       </section>
 
+      {/* Trip overview (Tier 2) — only when the agent produced it */}
+      {(data.trip.routeSummary ||
+        data.trip.transportStrategy ||
+        data.trip.budgetEstimate ||
+        (data.trip.seasonalTips && data.trip.seasonalTips.length > 0) ||
+        (data.trip.stayByCity && Object.keys(data.trip.stayByCity).length > 0)) && (
+        <section className="mx-auto max-w-[1200px] px-8 py-10">
+          <div className="grid gap-5 md:grid-cols-2">
+            {data.trip.routeSummary && (
+              <OverviewCard label="Route" value={data.trip.routeSummary} />
+            )}
+            {data.trip.transportStrategy && (
+              <OverviewCard label="Getting around" value={data.trip.transportStrategy} />
+            )}
+            {data.trip.budgetEstimate && (
+              <OverviewCard label="Rough budget" value={data.trip.budgetEstimate} />
+            )}
+            {data.trip.seasonalTips && data.trip.seasonalTips.length > 0 && (
+              <OverviewCard label="Good to know" value={data.trip.seasonalTips.join(" · ")} />
+            )}
+          </div>
+          {data.trip.stayByCity && Object.keys(data.trip.stayByCity).length > 0 && (
+            <div className="mt-6">
+              <div className="mb-3 font-mono text-[11px] uppercase tracking-[0.14em] text-[var(--color-ember)]">
+                Where to stay
+              </div>
+              <div className="grid gap-2 md:grid-cols-2">
+                {Object.entries(data.trip.stayByCity).map(([city, stay]) => (
+                  <div key={city} className="text-[14px] leading-[1.5] text-white/70">
+                    <span className="font-medium text-white">{city}:</span> {stay}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </section>
+      )}
+
       {/* Day tabs */}
       <div className="sticky top-[72px] z-20 border-y border-white/8 bg-[var(--color-navy-3)]/95 backdrop-blur-md">
         <div className="mx-auto flex max-w-[1200px] gap-1 overflow-x-auto px-8 py-3 scrollbar-none">
@@ -264,6 +302,17 @@ export default function ItineraryPage() {
           </section>
         ))}
       </main>
+    </div>
+  );
+}
+
+function OverviewCard({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-[18px] border border-white/8 bg-white/5 p-5">
+      <div className="font-mono text-[11px] uppercase tracking-[0.14em] text-[var(--color-ember)]">
+        {label}
+      </div>
+      <p className="mt-2 text-[14px] leading-[1.55] text-white/75">{value}</p>
     </div>
   );
 }

@@ -24,7 +24,13 @@ export type TripSummary = {
   statsPlaces: number;
   statsTips: number;
   statsPhotoStops: number;
-  emoji: string | null;
+  // Trip-level planning surface (Tier 2). Null on older trips generated before
+  // the field existed — render conditionally.
+  routeSummary: string | null;
+  transportStrategy: string | null;
+  seasonalTips: string[];
+  stayByCity: Record<string, string> | null;
+  budgetEstimate: string | null;
   createdAt: string;
 };
 
