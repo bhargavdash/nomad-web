@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Compass } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { TripStatus, TripSummary } from "@/types/api";
 
@@ -42,8 +43,8 @@ export function TripCard({ trip }: { trip: TripSummary }) {
       href={href}
       className="group flex items-center gap-5 rounded-[20px] border border-[var(--color-border-soft)] bg-[var(--color-warm-white)] p-5 shadow-card transition-all duration-200 hover:-translate-y-0.5 hover:shadow-card-hover"
     >
-      <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-[16px] bg-[var(--color-cream)] text-[28px]">
-        {trip.emoji ?? "🧭"}
+      <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-[16px] bg-[var(--color-cream)] text-[var(--color-ember)]">
+        <Compass size={24} strokeWidth={1.75} />
       </div>
 
       <div className="min-w-0 flex-1">
