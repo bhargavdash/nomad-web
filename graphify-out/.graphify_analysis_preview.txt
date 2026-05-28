@@ -1,0 +1,29 @@
+﻿python.exe : Traceback (most recent call last):
+At line:1 char:1
++ & (Get-Content graphify-out\.graphify_python) -c "
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Traceback (most recent call last)::String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+  File "<string>", line 14, in <module>
+    sys.stdout.buffer.write((q + chr(10)).encode('utf-8'))
+                             ~~^~~~~~~~~
+TypeError: unsupported operand type(s) for +: 'dict' and 'str'
+Top 15 communities by size:
+  [0] sz=36: ['nomad_web_package_dependencies', 'nomad_web_package_dependencies_axios', 'nomad_web_package_dependencies_class_variance_authority', 'nomad_web_package_dependencies_clsx', 'nomad_web_package_dependencies_date_fns', 'nomad_web_package_dependencies_framer_motion']
+  [1] sz=34: ['app_app_home_page_tsx', 'app_app_plan_page_tsx', 'components_layout_staggersection_tsx', 'components_plan_accommodationgrid_tsx', 'data_placeholders_accommodation_options', 'data_placeholders_budget_tiers']
+  [2] sz=33: ['app_app_trips_id_page_tsx', 'app_app_trips_page_tsx', 'brand_tripcard_formatdaterange', 'brand_tripcard_status_meta', 'brand_tripcard_tripcard', 'components_brand_tripcard_tsx']
+  [3] sz=31: ['brand_activetripcard_activetripcard', 'brand_activetripcard_activetripcardprops', 'brand_activetripcard_stat', 'brand_insightcard_insightcard', 'brand_insightcard_insightcardprops', 'brand_keywordchip_keywordchip']
+  [4] sz=24: ['app_app_trips_id_researching_page_tsx', 'app_auth_signin_page_tsx', 'app_auth_signup_page_tsx', 'components_layout_authshell_tsx', 'components_ui_button_tsx', 'components_ui_input_tsx']
+  [5] sz=22: ['app_app_profile_page_tsx', 'brand_useravatar_useravatar', 'brand_useravatar_useravatarprops', 'components_brand_useravatar_tsx', 'components_layout_topnav_tsx', 'components_ui_dialog_tsx']
+  [6] sz=20: ['nomad_web_tsconfig_compileroptions', 'nomad_web_tsconfig_compileroptions_allowjs', 'nomad_web_tsconfig_compileroptions_esmoduleinterop', 'nomad_web_tsconfig_compileroptions_incremental', 'nomad_web_tsconfig_compileroptions_isolatedmodules', 'nomad_web_tsconfig_compileroptions_jsx']
+  [7] sz=15: ['brand_destinationcard_destinationcard', 'brand_destinationcard_destinationcardprops', 'brand_heroctacard_heroctacard', 'brand_remoteimage_remoteimage', 'brand_remoteimage_remoteimageprops', 'components_brand_destinationcard_tsx']
+  [9] sz=10: ['build_component_skill', 'build_page_skill', 'claude_md_project', 'claude_md_root', 'coding_standards_doc', 'component_specs_doc']
+  [8] sz=10: ['app_app_layout_tsx', 'app_auth_callback_route_ts', 'app_auth_layout_tsx', 'app_layout_applayout', 'app_page_rootpage', 'app_page_tsx']
+  [10] sz=8: ['components_plan_locationsearchinput_tsx', 'hooks_usephotonsearch_getdisplaylabel', 'hooks_usephotonsearch_getsubtitle', 'hooks_usephotonsearch_photonfeature', 'hooks_usephotonsearch_ts', 'hooks_usephotonsearch_usephotonsearch']
+  [13] sz=7: ['api_axios_instance', 'api_types', 'auth_store', 'supabase_browser_client', 'trip_plan_store', 'use_initialize_auth_hook']
+  [12] sz=7: ['lib_supabase_middleware_ts', 'nomad_web_proxy_config', 'nomad_web_proxy_proxy', 'proxy_ts', 'supabase_middleware_auth_routes', 'supabase_middleware_protected_prefixes']
+  [11] sz=7: ['claude_settings_enabledplugins', 'claude_settings_enabledplugins_chrome_devtools_mcp_claude_plugins_official', 'claude_settings_enabledplugins_code_review_claude_plugins_official', 'claude_settings_enabledplugins_frontend_design_claude_plugins_official', 'claude_settings_enabledplugins_skill_creator_claude_plugins_official', 'claude_settings_enabledplugins_superpowers_claude_plugins_official']
+  [16] sz=6: ['active_trip_card_component', 'insight_card_component', 'placeholders_data', 'postcard_card_component', 'rationale_darkcardpattern', 'source_badge_component']
+
+Questions:

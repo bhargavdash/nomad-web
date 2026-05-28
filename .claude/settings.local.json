@@ -17,5 +17,22 @@
       "mcp__magic__21st_magic_component_inspiration",
       "mcp__magic__logo_search"
     ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "npx tsc --noEmit"
+          },
+          {
+            "type": "command",
+            "command": "npm run lint"
+          }
+        ]
+      }
+    ]
   }
 }
