@@ -138,7 +138,8 @@ export default function HomePage() {
               country={dest.country}
               duration={dest.duration}
               signal={dest.signal}
-              query={dest.query}
+              imageUrl={dest.imageUrl}
+              fallbackQuery={dest.query}
             />
           ))}
         </motion.div>

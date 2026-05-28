@@ -1,14 +1,12 @@
 "use client";
 
 import * as React from "react";
-import Image from "next/image";
 import { motion } from "framer-motion";
 import { Lock, MoreVertical } from "lucide-react";
 
 import { SourceBadge } from "@/components/brand/SourceBadge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import type { TripStop } from "@/types/api";
-import { unsplashByQuery } from "@/lib/unsplash";
 import { cn } from "@/lib/utils";
 
 interface PostcardCardProps {
@@ -27,96 +25,84 @@ export function PostcardCard({ stop, onLockToggle, onRemove, exiting }: Postcard
       }
       transition={{ duration: 0.55, ease: "easeOut" }}
       className={cn(
-        "relative overflow-hidden rounded-[20px] shadow-postcard transition-all duration-200",
+        "relative rounded-[18px] px-5 py-4 text-white transition-all duration-200",
         stop.locked
           ? "border-[1.5px] border-[var(--color-ember)] bg-[var(--color-card-dark)]"
-          : "bg-[var(--color-card-dark)]",
+          : "border-[1.5px] border-transparent bg-[var(--color-card-dark)]",
       )}
     >
-      {/* Photo */}
-      <div className="relative h-[220px] w-full">
-        <Image
-          src={unsplashByQuery(stop.name, 800, 600)}
-          alt={stop.name}
-          fill
-          className="object-cover"
-          sizes="(min-width: 768px) 560px, 90vw"
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/55" />
-
-        <button
-          onClick={onLockToggle}
-          aria-label={stop.locked ? "Unlock" : "Lock"}
-          className={cn(
-            "absolute left-4 top-4 flex h-9 w-9 items-center justify-center rounded-full backdrop-blur-md transition-all",
-            stop.locked
-              ? "bg-[var(--color-ember)] text-white"
-              : "bg-black/30 text-white hover:bg-black/50",
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          {(stop.source || stop.duration) && (
+            <div className="flex items-center gap-2.5">
+              {stop.source && <SourceBadge source={stop.source} />}
+              {stop.duration && (
+                <span className="font-mono text-[11px] uppercase tracking-[0.1em] text-white/45">
+                  {stop.duration}
+                </span>
+              )}
+            </div>
           )}
-        >
-          <Lock size={15} />
-        </button>
-
-        {stop.source && (
-          <div className="absolute right-4 top-4">
-            <SourceBadge source={stop.source} />
-          </div>
-        )}
-
-        <Popover>
-          <PopoverTrigger asChild>
-            <button
-              type="button"
-              aria-label="Options"
-              className="absolute right-4 bottom-4 flex h-9 w-9 items-center justify-center rounded-full bg-black/30 text-white backdrop-blur-md transition-colors hover:bg-black/50"
-            >
-              <MoreVertical size={15} />
-            </button>
-          </PopoverTrigger>
-          <PopoverContent align="end" className="min-w-[180px]">
-            <MenuItem onClick={onLockToggle}>{stop.locked ? "Unlock" : "Lock this stop"}</MenuItem>
-            <MenuItem onClick={onRemove} variant="danger">
-              Remove
-            </MenuItem>
-          </PopoverContent>
-        </Popover>
-      </div>
-
-      {/* Body */}
-      <div className="px-6 py-5 text-white">
-        <div className="flex items-baseline justify-between gap-3">
-          <h3 className="font-display text-[22px] font-bold leading-tight text-white">
+          <h3 className="mt-2 font-display text-[20px] font-bold leading-tight text-white">
             {stop.name}
           </h3>
-          {stop.duration && (
-            <span className="shrink-0 font-mono text-[11px] uppercase tracking-[0.1em] text-white/55">
-              {stop.duration}
-            </span>
-          )}
         </div>
 
-        {stop.description && (
-          <p className="mt-2 text-[14px] leading-[1.55] text-white/55">{stop.description}</p>
-        )}
+        <div className="flex shrink-0 items-center gap-1">
+          <button
+            onClick={onLockToggle}
+            aria-label={stop.locked ? "Unlock" : "Lock"}
+            className={cn(
+              "flex h-9 w-9 items-center justify-center rounded-full transition-all",
+              stop.locked
+                ? "bg-[var(--color-ember)] text-white"
+                : "bg-white/8 text-white/60 hover:bg-white/15 hover:text-white",
+            )}
+          >
+            <Lock size={15} />
+          </button>
 
-        {stop.tags.length > 0 && (
-          <div className="mt-4 flex flex-wrap gap-2">
-            {stop.tags.map((t) => (
-              <span
-                key={t}
-                className={cn(
-                  "rounded-[100px] px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.06em]",
-                  stop.locked
-                    ? "bg-[var(--color-ember)]/20 text-[var(--color-peach)]"
-                    : "bg-white/10 text-white/65",
-                )}
+          <Popover>
+            <PopoverTrigger asChild>
+              <button
+                type="button"
+                aria-label="Options"
+                className="flex h-9 w-9 items-center justify-center rounded-full bg-white/8 text-white/60 transition-colors hover:bg-white/15 hover:text-white"
               >
-                {t}
-              </span>
-            ))}
-          </div>
-        )}
+                <MoreVertical size={15} />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent align="end" className="min-w-[180px]">
+              <MenuItem onClick={onLockToggle}>{stop.locked ? "Unlock" : "Lock this stop"}</MenuItem>
+              <MenuItem onClick={onRemove} variant="danger">
+                Remove
+              </MenuItem>
+            </PopoverContent>
+          </Popover>
+        </div>
       </div>
+
+      {stop.description && (
+        <p className="mt-2 text-[14px] leading-[1.55] text-white/55">{stop.description}</p>
+      )}
+
+      {stop.tags.length > 0 && (
+        <div className="mt-4 flex flex-wrap gap-2">
+          {stop.tags.map((t) => (
+            <span
+              key={t}
+              className={cn(
+                "rounded-[100px] px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.06em]",
+                stop.locked
+                  ? "bg-[var(--color-ember)]/20 text-[var(--color-peach)]"
+                  : "bg-white/10 text-white/65",
+              )}
+            >
+              {t}
+            </span>
+          ))}
+        </div>
+      )}
     </motion.article>
   );
 }

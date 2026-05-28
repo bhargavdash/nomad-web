@@ -65,6 +65,9 @@ export const DEMO_STOPS_DAY1 = [
   },
 ];
 
+// imageUrl is baked from Wikipedia (pithumbsize=1280, photo-filtered) so the
+// home page has no runtime image-resolution path. If a URL ever 404s, the
+// <DestinationCard>'s RemoteImage falls back to a deterministic Unsplash photo.
 export const TRENDING_DESTINATIONS = [
   {
     id: 't1',
@@ -73,7 +76,9 @@ export const TRENDING_DESTINATIONS = [
     duration: '5–10 days',
     signal: '🔥 Trending this week',
     emoji: '🗼',
-    query: 'Tokyo Japan neon',
+    query: 'Tokyo Japan',
+    imageUrl:
+      'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b2/Skyscrapers_of_Shinjuku_2009_January.jpg/1280px-Skyscrapers_of_Shinjuku_2009_January.jpg',
   },
   {
     id: 't2',
@@ -82,7 +87,9 @@ export const TRENDING_DESTINATIONS = [
     duration: '7–14 days',
     signal: '🔥 4.2k trips planned',
     emoji: '🌴',
-    query: 'Bali rice terraces',
+    query: 'Bali Indonesia',
+    imageUrl:
+      'https://upload.wikimedia.org/wikipedia/commons/f/f8/Aerial_view_of_Bajra_Sandhi_Monument_Denpasar_Bali_Indonesia.jpg',
   },
   {
     id: 't3',
@@ -92,6 +99,8 @@ export const TRENDING_DESTINATIONS = [
     signal: '⬆ Up 34% this month',
     emoji: '🕌',
     query: 'Marrakech Morocco',
+    imageUrl:
+      'https://upload.wikimedia.org/wikipedia/commons/9/9c/Pavillon_Menarag%C3%A4rten.jpg',
   },
   {
     id: 't4',
@@ -100,7 +109,9 @@ export const TRENDING_DESTINATIONS = [
     duration: '4–7 days',
     signal: '🌸 Cherry blossom',
     emoji: '⛩️',
-    query: 'Kyoto cherry blossom',
+    query: 'Kyoto Japan',
+    imageUrl:
+      'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/Kiyomizu.jpg/1280px-Kiyomizu.jpg',
   },
   {
     id: 't5',
@@ -110,6 +121,8 @@ export const TRENDING_DESTINATIONS = [
     signal: '✦ Hidden gem pick',
     emoji: '☕',
     query: 'Cartagena Colombia',
+    imageUrl:
+      'https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Museo_Naval_del_Caribe.JPG/1280px-Museo_Naval_del_Caribe.JPG',
   },
 ];
 

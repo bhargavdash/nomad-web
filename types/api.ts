@@ -31,6 +31,9 @@ export type TripSummary = {
   seasonalTips: string[];
   stayByCity: Record<string, string> | null;
   budgetEstimate: string | null;
+  // City-led imagery — resolved server-side once and shipped with the trip.
+  heroImageUrl: string | null;
+  imagesResolvedAt: string | null;
   createdAt: string;
 };
 
@@ -42,6 +45,7 @@ export type TripDay = {
   description: string | null;
   highlights: string[];
   stopCount: number;
+  imageUrl: string | null;
 };
 
 export type TripStop = {
