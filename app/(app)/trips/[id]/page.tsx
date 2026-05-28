@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { motion } from "framer-motion";
@@ -9,8 +8,8 @@ import { ArrowLeft, Share2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { PostcardCard } from "@/components/itinerary/PostcardCard";
+import { RemoteImage } from "@/components/brand/RemoteImage";
 import { api } from "@/lib/api";
-import { unsplashByQuery } from "@/lib/unsplash";
 import { cn } from "@/lib/utils";
 import type { TripFullResponse, TripStop } from "@/types/api";
 
@@ -112,6 +111,24 @@ export default function ItineraryPage() {
     }
   };
 
+  // Show a city banner once per unique city (skip the destination itself — the
+  // hero already covers it). Repeated cities render a plain header, so we never
+  // show duplicate imagery.
+  const cityBannerDays = React.useMemo(() => {
+    const map: Record<string, boolean> = {};
+    if (!data) return map;
+    const dest = data.trip.destination.trim().toLowerCase();
+    const seen = new Set<string>();
+    data.days.forEach((day) => {
+      const key = (day.city ?? "").trim().toLowerCase();
+      if (key && key !== dest && !seen.has(key)) {
+        seen.add(key);
+        map[day.id] = true;
+      }
+    });
+    return map;
+  }, [data]);
+
   if (loading) {
     return (
       <div className="flex min-h-[calc(100vh-72px)] items-center justify-center bg-[var(--color-navy-3)]">
@@ -137,10 +154,10 @@ export default function ItineraryPage() {
     <div className="-mt-[1px] min-h-screen bg-[var(--color-navy-3)] text-white">
       {/* Hero banner */}
       <section className="relative h-[60vh] min-h-[420px] w-full overflow-hidden">
-        <Image
-          src={unsplashByQuery(data.trip.destination, 1920, 1200)}
+        <RemoteImage
+          src={data.trip.heroImageUrl}
+          fallbackQuery={data.trip.destination}
           alt={data.trip.destination}
-          fill
           priority
           className="object-cover"
           sizes="100vw"
@@ -260,14 +277,37 @@ export default function ItineraryPage() {
         {data.days.map((day) => (
           <section key={day.id} id={`day-${day.id}`} className="mb-20 scroll-mt-[140px]">
             <div className="mb-8">
-              <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-[var(--color-ember)]">
-                Day {day.dayNumber} — {day.city}
-              </span>
-              <h2 className="mt-2 font-display text-[36px] font-extrabold leading-[1.05] text-white">
-                {day.title}
-              </h2>
+              {cityBannerDays[day.id] ? (
+                <div className="relative mb-5 h-[200px] w-full overflow-hidden rounded-[20px] shadow-postcard">
+                  <RemoteImage
+                    src={day.imageUrl}
+                    fallbackQuery={day.city}
+                    alt={day.city}
+                    className="object-cover"
+                    sizes="(min-width: 680px) 680px, 90vw"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent" />
+                  <div className="absolute inset-x-0 bottom-0 p-6">
+                    <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-[var(--color-peach)]">
+                      Day {day.dayNumber} — {day.city}
+                    </span>
+                    <h2 className="mt-1.5 font-display text-[32px] font-extrabold leading-[1.05] text-white">
+                      {day.title}
+                    </h2>
+                  </div>
+                </div>
+              ) : (
+                <div className="mb-5">
+                  <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-[var(--color-ember)]">
+                    Day {day.dayNumber} — {day.city}
+                  </span>
+                  <h2 className="mt-2 font-display text-[32px] font-extrabold leading-[1.05] text-white">
+                    {day.title}
+                  </h2>
+                </div>
+              )}
               {day.description && (
-                <p className="mt-3 text-[15px] leading-[1.55] text-white/55">{day.description}</p>
+                <p className="text-[15px] leading-[1.55] text-white/55">{day.description}</p>
               )}
             </div>
 

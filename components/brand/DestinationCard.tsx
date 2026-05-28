@@ -1,15 +1,17 @@
 "use client";
 
 import * as React from "react";
-import Image from "next/image";
-import { unsplashByQuery } from "@/lib/unsplash";
+import { RemoteImage } from "@/components/brand/RemoteImage";
 
 interface DestinationCardProps {
   name: string;
   country: string;
   duration: string;
   signal: string;
-  query: string;
+  /** Pre-resolved image URL (baked into the static trending data). */
+  imageUrl?: string | null;
+  /** Used only for the on-error fallback if `imageUrl` ever fails to load. */
+  fallbackQuery?: string;
   onClick?: () => void;
 }
 
@@ -18,7 +20,8 @@ export function DestinationCard({
   country,
   duration,
   signal,
-  query,
+  imageUrl,
+  fallbackQuery,
   onClick,
 }: DestinationCardProps) {
   return (
@@ -28,10 +31,10 @@ export function DestinationCard({
       className="group relative w-[280px] shrink-0 overflow-hidden rounded-[20px] text-left transition-transform duration-300 hover:-translate-y-1"
     >
       <div className="relative h-[360px] w-full">
-        <Image
-          src={unsplashByQuery(query, 600, 800)}
+        <RemoteImage
+          src={imageUrl}
+          fallbackQuery={fallbackQuery ?? `${name} ${country}`}
           alt={`${name}, ${country}`}
-          fill
           className="object-cover transition-transform duration-700 group-hover:scale-105"
           sizes="280px"
         />
