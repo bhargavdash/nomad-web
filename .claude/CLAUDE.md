@@ -161,3 +161,24 @@ This project has a knowledge graph at `graphify-out/` with god nodes, community 
 - If `graphify-out/wiki/index.md` exists, use it for broad navigation instead of raw source browsing.
 - Read `graphify-out/GRAPH_REPORT.md` only for broad architecture review or when query/path/explain don't surface enough context.
 - After modifying code, run `graphify update .` to keep the graph current (AST-only, no API cost).
+
+---
+
+## Auto-invocation — Claude selects without user prompting
+
+**Apply this table automatically. The user does not need to name a tool, skill, or agent.**
+
+| Trigger | Invoke automatically |
+|---------|----------------------|
+| Building or editing any `.tsx` component | `build-component` skill (loads token/structure rules) |
+| Building a new Next.js page or route | `build-page` skill (routing, data-fetching patterns) |
+| Creating a new `app/api/**/route.ts` | `new-api-route` skill (auth guard, typed handler) |
+| After completing any component or page task | `design-reviewer` subagent via Agent tool — runs in isolation (zero main-context tokens) |
+| After completing any feature or bug fix | `react-doctor` skill — required quality gate before marking done |
+| Any codebase question: "where is X", "how does Y work", file relationships | `graphify query "<question>"` before opening source files |
+| Docs for Next.js, React, Tailwind v4, Framer Motion, Supabase, Lucide, Zustand, Axios, Sonner | `mcp__context7__resolve-library-id` → `mcp__context7__query-docs` — never WebSearch for library docs |
+| Building new UI from a description, spec, or sketch | `mcp__magic__21st_magic_component_builder` before building manually |
+| Viewing or implementing Figma designs | `mcp__claude_ai_Figma__get_design_context` + `mcp__claude_ai_Figma__get_screenshot` |
+| Planning work that spans >3 files or >1 hour | `superpowers:writing-plans` → `superpowers:executing-plans` |
+| Non-obvious bug with unclear root cause | `superpowers:systematic-debugging` skill |
+| Finishing a branch before PR | `superpowers:finishing-a-development-branch` skill |

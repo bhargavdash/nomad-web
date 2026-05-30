@@ -16,6 +16,49 @@
             "command": "CMD=$(python3 -c \"import json,sys; d=json.load(sys.stdin); print(d.get('tool_input',d).get('command',''))\" 2>/dev/null || true); case \"$CMD\" in *grep*|*rg\\ *|*ripgrep*|*find\\ *|*fd\\ *|*ack\\ *|*ag\\ *)   [ -f graphify-out/graph.json ] &&   echo '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"additionalContext\":\"graphify: knowledge graph at graphify-out/. For focused questions, run `graphify query \\\"<question>\\\"` (scoped subgraph, usually much smaller than GRAPH_REPORT.md) instead of grepping raw files. Read GRAPH_REPORT.md only for broad architecture context.\"}}'   || true ;; esac"
           }
         ]
+      },
+      {
+        "matcher": "WebSearch|WebFetch",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "QUERY=$(python3 -c \"import json,sys; d=json.load(sys.stdin); ti=d.get('tool_input',{}); print(ti.get('query','') or ti.get('url',''))\" 2>/dev/null || true); case \"$QUERY\" in *next*|*react*|*tailwind*|*framer*|*supabase*|*lucide*|*zustand*|*axios*|*typescript*|*zod*|*framer-motion*|*sonner*) echo '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"additionalContext\":\"context7: Library/framework docs detected. Use mcp__context7__resolve-library-id then mcp__context7__query-docs instead — scoped to installed version, no web noise, cheaper tokens.\"}}' ;; esac"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "npx tsc --noEmit"
+          },
+          {
+            "type": "command",
+            "command": "npm run lint"
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "FILE=$(python3 -c \"import json,sys; d=json.load(sys.stdin); print(d.get('tool_input',{}).get('file_path',''))\" 2>/dev/null || true); case \"$FILE\" in *components/*.tsx|*components/*.ts|*app/*.tsx|*app/*.ts) echo '{\"hookSpecificOutput\":{\"hookEventName\":\"PostToolUse\",\"additionalContext\":\"design-check: UI file edited. When this component/page task is complete, spawn the design-reviewer subagent (Agent tool, subagent_type=design-reviewer) — runs in isolation, zero main-context token cost.\"}}' ;; esac"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "[ -f graphify-out/graph.json ] && graphify update . 2>&1 | tail -c 150 || true"
+          }
+        ]
       }
     ]
   }
