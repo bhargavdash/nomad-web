@@ -3,6 +3,7 @@
 import * as React from "react";
 import { motion } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { toast } from "sonner";
 
 import { ActiveTripCard } from "@/components/brand/ActiveTripCard";
 import { DestinationCard } from "@/components/brand/DestinationCard";
@@ -38,7 +39,15 @@ export default function HomePage() {
         const active = res.data.trips.find((t) => t.status === "active" || t.status === "ready");
         setActiveTrip(active ?? null);
       })
-      .catch(() => {});
+      .catch((err) => {
+        if (cancelled) return;
+        // 401s are handled by the api interceptor (refresh + sign out).
+        // Anything else: surface so the empty hero isn't silently misleading.
+        const status = err?.response?.status;
+        if (status && status !== 401) {
+          toast.error("Couldn't load your active trip");
+        }
+      });
     return () => {
       cancelled = true;
     };

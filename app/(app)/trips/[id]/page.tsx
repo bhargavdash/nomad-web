@@ -9,6 +9,7 @@ import { toast } from "sonner";
 
 import { PostcardCard } from "@/components/itinerary/PostcardCard";
 import { RemoteImage } from "@/components/brand/RemoteImage";
+import { useRefetchOnFocus } from "@/hooks/useRefetchOnFocus";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import type { TripFullResponse, TripStop } from "@/types/api";
@@ -40,6 +41,17 @@ export default function ItineraryPage() {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tripId]);
+
+  const refreshSilently = React.useCallback(async () => {
+    try {
+      const res = await api.get<TripFullResponse>(`/trips/${tripId}/full`);
+      setData(res.data);
+    } catch {
+      // keep existing data on background refresh failure
+    }
+  }, [tripId]);
+
+  useRefetchOnFocus(refreshSilently, !loading && !!data);
 
   React.useEffect(() => {
     if (!data) return;
@@ -130,13 +142,7 @@ export default function ItineraryPage() {
   }, [data]);
 
   if (loading) {
-    return (
-      <div className="flex min-h-[calc(100vh-72px)] items-center justify-center bg-[var(--color-navy-3)]">
-        <div className="font-mono text-[12px] uppercase tracking-[0.16em] text-white/55">
-          Loading trip…
-        </div>
-      </div>
-    );
+    return <ItinerarySkeleton />;
   }
 
   if (!data) {
@@ -339,6 +345,66 @@ export default function ItineraryPage() {
                 {day.stopCount} stops planned · details syncing
               </div>
             )}
+          </section>
+        ))}
+      </main>
+    </div>
+  );
+}
+
+function ItinerarySkeleton() {
+  return (
+    <div className="-mt-[1px] min-h-screen bg-[var(--color-navy-3)] text-white">
+      <section className="relative h-[60vh] min-h-[420px] w-full overflow-hidden bg-white/5">
+        <div className="absolute inset-0 animate-pulse bg-gradient-to-t from-[var(--color-navy-3)] via-white/5 to-white/10" />
+        <div className="relative z-10 mx-auto flex h-full max-w-[1200px] flex-col justify-between px-8 pt-8 pb-12">
+          <div className="flex items-center justify-between">
+            <div className="h-9 w-20 animate-pulse rounded-[100px] bg-white/10" />
+            <div className="h-9 w-24 animate-pulse rounded-[100px] bg-white/10" />
+          </div>
+          <div>
+            <div className="h-3 w-40 animate-pulse rounded-md bg-white/10" />
+            <div className="mt-4 h-[64px] w-2/3 animate-pulse rounded-md bg-white/10" />
+            <div className="mt-5 flex flex-wrap gap-6">
+              <div className="h-3 w-16 animate-pulse rounded-md bg-white/10" />
+              <div className="h-3 w-20 animate-pulse rounded-md bg-white/10" />
+              <div className="h-3 w-24 animate-pulse rounded-md bg-white/10" />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div className="sticky top-[72px] z-20 border-y border-white/8 bg-[var(--color-navy-3)]/95 backdrop-blur-md">
+        <div className="mx-auto flex max-w-[1200px] gap-3 px-8 py-3">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="h-7 w-24 animate-pulse rounded-[100px] bg-white/10" />
+          ))}
+        </div>
+      </div>
+
+      <main className="mx-auto max-w-[680px] px-6 py-16">
+        {Array.from({ length: 2 }).map((_, dayIdx) => (
+          <section key={dayIdx} className="mb-20">
+            <div className="mb-8">
+              <div className="h-3 w-40 animate-pulse rounded-md bg-white/10" />
+              <div className="mt-3 h-8 w-3/4 animate-pulse rounded-md bg-white/10" />
+              <div className="mt-3 h-3 w-full animate-pulse rounded-md bg-white/10" />
+            </div>
+            <div className="flex flex-col gap-8">
+              {Array.from({ length: 3 }).map((_, stopIdx) => (
+                <div key={stopIdx} className="flex gap-4">
+                  <div className="w-[68px] shrink-0 pt-2">
+                    <div className="ml-auto h-6 w-12 animate-pulse rounded-md bg-white/10" />
+                    <div className="mt-1 ml-auto h-3 w-10 animate-pulse rounded-md bg-white/10" />
+                  </div>
+                  <div className="flex-1 animate-pulse rounded-[18px] border border-white/8 bg-white/5 p-6">
+                    <div className="h-5 w-1/2 rounded-md bg-white/10" />
+                    <div className="mt-3 h-3 w-full rounded-md bg-white/10" />
+                    <div className="mt-2 h-3 w-5/6 rounded-md bg-white/10" />
+                  </div>
+                </div>
+              ))}
+            </div>
           </section>
         ))}
       </main>
