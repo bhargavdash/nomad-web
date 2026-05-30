@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
@@ -11,14 +12,31 @@ import { HeroCTACard } from "@/components/brand/HeroCTACard";
 import { StaggerSection } from "@/components/layout/StaggerSection";
 import { DEMO_TRIP } from "@/data/placeholders";
 import { api } from "@/lib/api";
+import { unsplashByQuery } from "@/lib/unsplash";
 import { useAuthStore } from "@/store/authStore";
 import type { TripSummary, TrendingDest, TrendingResponse } from "@/types/api";
 
 export default function HomePage() {
+  const router = useRouter();
   const user = useAuthStore((s) => s.user);
   const profile = useAuthStore((s) => s.profile);
   const [activeTrip, setActiveTrip] = React.useState<TripSummary | null>(null);
   const [trending, setTrending] = React.useState<TrendingResponse | null>(null);
+
+  const handleTrendingPick = React.useCallback(
+    (dest: TrendingDest) => {
+      const params = new URLSearchParams({
+        from: "trending",
+        dest: dest.name,
+        country: dest.country,
+        duration: dest.duration,
+        blurb: dest.blurb,
+        vibes: dest.vibe_tags.join(","),
+      });
+      router.push(`/plan?${params.toString()}`);
+    },
+    [router],
+  );
 
   const firstName =
     profile?.displayName?.split(" ")[0] ??
@@ -112,6 +130,7 @@ export default function HomePage() {
           </>
         }
         destinations={trending?.india ?? null}
+        onPick={handleTrendingPick}
       />
       <TrendingRow
         index={3}
@@ -122,6 +141,7 @@ export default function HomePage() {
           </>
         }
         destinations={trending?.international ?? null}
+        onPick={handleTrendingPick}
         className="mt-16"
       />
 
@@ -151,10 +171,18 @@ type TrendingRowProps = {
   eyebrow: string;
   title: React.ReactNode;
   destinations: TrendingDest[] | null;
+  onPick: (dest: TrendingDest) => void;
   className?: string;
 };
 
-function TrendingRow({ index, eyebrow, title, destinations, className }: TrendingRowProps) {
+function TrendingRow({
+  index,
+  eyebrow,
+  title,
+  destinations,
+  onPick,
+  className,
+}: TrendingRowProps) {
   const scrollRef = React.useRef<HTMLDivElement>(null);
   const scrollBy = (delta: number) => {
     scrollRef.current?.scrollBy({ left: delta, behavior: "smooth" });
@@ -205,7 +233,9 @@ function TrendingRow({ index, eyebrow, title, destinations, className }: Trendin
                   country={dest.country}
                   duration={dest.duration}
                   signal={signalFromVibe(dest.vibe_tags)}
+                  imageUrl={dest.imageUrl ?? unsplashByQuery(`${dest.name} ${dest.country}`)}
                   fallbackQuery={`${dest.name} ${dest.country}`}
+                  onClick={() => onPick(dest)}
                 />
               ))}
       </motion.div>

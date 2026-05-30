@@ -89,6 +89,10 @@ export type TrendingDest = {
   duration: string; // "5-7 days"
   blurb: string; // ≤15 words
   vibe_tags: string[];
+  // Hydrated lazily by nomad-api via the Wikipedia place-image resolver.
+  // Null when Wikipedia has no usable photo — frontend then deterministically
+  // picks a themed Unsplash fallback.
+  imageUrl?: string | null;
 };
 
 export type Season = 'summer' | 'monsoon' | 'post-monsoon' | 'winter';

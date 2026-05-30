@@ -28,7 +28,7 @@ export function DestinationCard({
     <button
       type="button"
       onClick={onClick}
-      className="group relative w-[280px] shrink-0 overflow-hidden rounded-[20px] text-left transition-transform duration-300 hover:-translate-y-1"
+      className="group relative w-[280px] shrink-0 cursor-pointer overflow-hidden rounded-[20px] text-left transition-transform duration-300 hover:-translate-y-1"
     >
       <div className="relative h-[360px] w-full">
         <RemoteImage
