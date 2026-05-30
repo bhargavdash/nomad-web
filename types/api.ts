@@ -82,20 +82,21 @@ export type ResearchJobResponse = {
   discoveries: ResearchDiscovery[];
 };
 
-export type TrendingDestination = {
-  id: string;
+// SA-8: trending is now LLM-generated per season, split into India + International.
+export type TrendingDest = {
   name: string;
   country: string;
-  duration: string;
-  signal: string;
-  emoji: string | null;
+  duration: string; // "5-7 days"
+  blurb: string; // ≤15 words
+  vibe_tags: string[];
 };
 
-export type Insight = {
-  id: string;
-  title: string;
-  body: string;
-  source: 'youtube' | 'reddit' | 'blog' | 'maps';
-  destTag: string;
-  icon: string;
+export type Season = 'summer' | 'monsoon' | 'post-monsoon' | 'winter';
+
+export type TrendingResponse = {
+  season: Season | 'bootstrap';
+  seasonKey: string | null;
+  refreshedAt: string | null;
+  india: TrendingDest[];
+  international: TrendingDest[];
 };

@@ -8,22 +8,17 @@ import { toast } from "sonner";
 import { ActiveTripCard } from "@/components/brand/ActiveTripCard";
 import { DestinationCard } from "@/components/brand/DestinationCard";
 import { HeroCTACard } from "@/components/brand/HeroCTACard";
-import { InsightCard } from "@/components/brand/InsightCard";
 import { StaggerSection } from "@/components/layout/StaggerSection";
-import {
-  DEMO_TRIP,
-  DEMO_STOPS_DAY1,
-  TRENDING_DESTINATIONS,
-} from "@/data/placeholders";
+import { DEMO_TRIP } from "@/data/placeholders";
 import { api } from "@/lib/api";
 import { useAuthStore } from "@/store/authStore";
-import type { TripSummary } from "@/types/api";
+import type { TripSummary, TrendingDest, TrendingResponse } from "@/types/api";
 
 export default function HomePage() {
   const user = useAuthStore((s) => s.user);
   const profile = useAuthStore((s) => s.profile);
   const [activeTrip, setActiveTrip] = React.useState<TripSummary | null>(null);
-  const scrollRef = React.useRef<HTMLDivElement>(null);
+  const [trending, setTrending] = React.useState<TrendingResponse | null>(null);
 
   const firstName =
     profile?.displayName?.split(" ")[0] ??
@@ -41,8 +36,6 @@ export default function HomePage() {
       })
       .catch((err) => {
         if (cancelled) return;
-        // 401s are handled by the api interceptor (refresh + sign out).
-        // Anything else: surface so the empty hero isn't silently misleading.
         const status = err?.response?.status;
         if (status && status !== 401) {
           toast.error("Couldn't load your active trip");
@@ -53,9 +46,25 @@ export default function HomePage() {
     };
   }, []);
 
-  const scrollBy = (delta: number) => {
-    scrollRef.current?.scrollBy({ left: delta, behavior: "smooth" });
-  };
+  React.useEffect(() => {
+    let cancelled = false;
+    api
+      .get<TrendingResponse>("/trending")
+      .then((res) => {
+        if (cancelled) return;
+        setTrending(res.data);
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        const status = err?.response?.status;
+        if (status && status !== 401) {
+          toast.error("Couldn't load trending destinations");
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
     <div className="mx-auto max-w-[1440px] px-8 pb-24">
@@ -73,86 +82,48 @@ export default function HomePage() {
         </p>
       </StaggerSection>
 
-      {/* Hero row — asymmetric grid */}
-      <div className="mt-14 grid grid-cols-1 gap-6 lg:grid-cols-[1.6fr_1fr]">
-        <StaggerSection index={1}>
-          {activeTrip ? (
-            <ActiveTripCard
-              destination={activeTrip.destination}
-              dateFrom={activeTrip.dateFrom ?? DEMO_TRIP.dates.from}
-              dateTo={activeTrip.dateTo ?? DEMO_TRIP.dates.to}
-              duration={activeTrip.durationDays ?? DEMO_TRIP.duration}
-              stats={{
-                places: activeTrip.statsPlaces,
-                tips: activeTrip.statsTips,
-                photoStops: activeTrip.statsPhotoStops,
-              }}
-              href={`/trips/${activeTrip.id}`}
-            />
-          ) : (
-            <HeroCTACard />
-          )}
-        </StaggerSection>
-
-        <StaggerSection index={2} className="flex flex-col gap-4">
-          <SectionEyebrow>Travel insights</SectionEyebrow>
-          {DEMO_STOPS_DAY1.slice(0, 3).map((stop) => (
-            <InsightCard
-              key={stop.id}
-              icon={stop.tags[0]?.slice(0, 2) ?? "📌"}
-              title={stop.name}
-              body={stop.desc}
-              source={stop.source}
-              destTag="Jaipur"
-            />
-          ))}
-        </StaggerSection>
-      </div>
-
-      {/* Trending row */}
-      <StaggerSection index={3} className="mt-20">
-        <div className="flex items-end justify-between mb-6">
-          <div>
-            <SectionEyebrow>Where everyone&apos;s going</SectionEyebrow>
-            <h2 className="mt-2 font-display text-[36px] font-extrabold leading-tight text-[var(--color-ink)]">
-              Trending <span className="text-wander">right now</span>
-            </h2>
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => scrollBy(-340)}
-              className="flex h-11 w-11 items-center justify-center rounded-full border-[1.5px] border-[var(--color-border-soft)] text-[var(--color-ink)] transition-colors hover:border-[var(--color-ink)]"
-              aria-label="Scroll left"
-            >
-              <ChevronLeft size={18} />
-            </button>
-            <button
-              onClick={() => scrollBy(340)}
-              className="flex h-11 w-11 items-center justify-center rounded-full border-[1.5px] border-[var(--color-border-soft)] text-[var(--color-ink)] transition-colors hover:border-[var(--color-ink)]"
-              aria-label="Scroll right"
-            >
-              <ChevronRight size={18} />
-            </button>
-          </div>
-        </div>
-
-        <motion.div
-          ref={scrollRef}
-          className="scrollbar-none -mx-8 flex gap-5 overflow-x-auto px-8 pb-2"
-        >
-          {TRENDING_DESTINATIONS.map((dest) => (
-            <DestinationCard
-              key={dest.id}
-              name={dest.name}
-              country={dest.country}
-              duration={dest.duration}
-              signal={dest.signal}
-              imageUrl={dest.imageUrl}
-              fallbackQuery={dest.query}
-            />
-          ))}
-        </motion.div>
+      {/* Hero — full width now that the insights column is gone (SA-8) */}
+      <StaggerSection index={1} className="mt-14">
+        {activeTrip ? (
+          <ActiveTripCard
+            destination={activeTrip.destination}
+            dateFrom={activeTrip.dateFrom ?? DEMO_TRIP.dates.from}
+            dateTo={activeTrip.dateTo ?? DEMO_TRIP.dates.to}
+            duration={activeTrip.durationDays ?? DEMO_TRIP.duration}
+            stats={{
+              places: activeTrip.statsPlaces,
+              tips: activeTrip.statsTips,
+              photoStops: activeTrip.statsPhotoStops,
+            }}
+            href={`/trips/${activeTrip.id}`}
+          />
+        ) : (
+          <HeroCTACard />
+        )}
       </StaggerSection>
+
+      {/* Trending — two LLM-driven rows: India + International */}
+      <TrendingRow
+        index={2}
+        eyebrow="Where Indians are heading"
+        title={
+          <>
+            Trending in <span className="text-wander">India</span>
+          </>
+        }
+        destinations={trending?.india ?? null}
+      />
+      <TrendingRow
+        index={3}
+        eyebrow="Indian passport · easy entry"
+        title={
+          <>
+            Trending <span className="text-wander">internationally</span>
+          </>
+        }
+        destinations={trending?.international ?? null}
+        className="mt-16"
+      />
 
       {/* Closing editorial line */}
       <StaggerSection index={4} className="mt-24 border-t border-[var(--color-border-soft)] pt-12">
@@ -173,6 +144,116 @@ export default function HomePage() {
       </StaggerSection>
     </div>
   );
+}
+
+type TrendingRowProps = {
+  index: number;
+  eyebrow: string;
+  title: React.ReactNode;
+  destinations: TrendingDest[] | null;
+  className?: string;
+};
+
+function TrendingRow({ index, eyebrow, title, destinations, className }: TrendingRowProps) {
+  const scrollRef = React.useRef<HTMLDivElement>(null);
+  const scrollBy = (delta: number) => {
+    scrollRef.current?.scrollBy({ left: delta, behavior: "smooth" });
+  };
+
+  const isLoading = destinations === null;
+  const isEmpty = !isLoading && destinations.length === 0;
+
+  return (
+    <StaggerSection index={index} className={className ?? "mt-20"}>
+      <div className="mb-6 flex items-end justify-between">
+        <div>
+          <SectionEyebrow>{eyebrow}</SectionEyebrow>
+          <h2 className="mt-2 font-display text-[36px] font-extrabold leading-tight text-[var(--color-ink)]">
+            {title}
+          </h2>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => scrollBy(-340)}
+            className="flex h-11 w-11 items-center justify-center rounded-full border-[1.5px] border-[var(--color-border-soft)] text-[var(--color-ink)] transition-colors hover:border-[var(--color-ink)]"
+            aria-label="Scroll left"
+          >
+            <ChevronLeft size={18} />
+          </button>
+          <button
+            onClick={() => scrollBy(340)}
+            className="flex h-11 w-11 items-center justify-center rounded-full border-[1.5px] border-[var(--color-border-soft)] text-[var(--color-ink)] transition-colors hover:border-[var(--color-ink)]"
+            aria-label="Scroll right"
+          >
+            <ChevronRight size={18} />
+          </button>
+        </div>
+      </div>
+
+      <motion.div
+        ref={scrollRef}
+        className="scrollbar-none -mx-8 flex gap-5 overflow-x-auto px-8 pb-2"
+      >
+        {isLoading
+          ? Array.from({ length: 5 }).map((_, i) => <TrendingCardSkeleton key={i} />)
+          : isEmpty
+            ? <EmptyTrending />
+            : destinations.map((dest, i) => (
+                <DestinationCard
+                  key={`${dest.name}-${i}`}
+                  name={dest.name}
+                  country={dest.country}
+                  duration={dest.duration}
+                  signal={signalFromVibe(dest.vibe_tags)}
+                  fallbackQuery={`${dest.name} ${dest.country}`}
+                />
+              ))}
+      </motion.div>
+    </StaggerSection>
+  );
+}
+
+function TrendingCardSkeleton() {
+  return (
+    <div className="w-[280px] shrink-0 overflow-hidden rounded-[20px]">
+      <div className="h-[360px] w-full animate-pulse bg-[var(--color-cream-2)]" />
+    </div>
+  );
+}
+
+function EmptyTrending() {
+  return (
+    <div className="w-full rounded-[20px] border border-[var(--color-border-soft)] bg-[var(--color-warm-white)] py-12 text-center text-[14px] text-[var(--color-muted)]">
+      Refreshing trending picks for this season — check back in a minute.
+    </div>
+  );
+}
+
+const VIBE_BADGE: Record<string, string> = {
+  beach: "🏖 Beach",
+  mountains: "🏔 Mountains",
+  heritage: "🏛 Heritage",
+  food: "🍜 Foodie",
+  nightlife: "🌃 Nightlife",
+  adventure: "🧗 Adventure",
+  spiritual: "🕉 Spiritual",
+  luxury: "✨ Luxury",
+  offbeat: "✦ Offbeat",
+  family: "👨‍👩‍👧 Family",
+  romance: "💞 Romance",
+  wellness: "🧘 Wellness",
+  wildlife: "🐅 Wildlife",
+  nature: "🌿 Nature",
+  culture: "🎭 Culture",
+  coastal: "🌊 Coastal",
+  diving: "🤿 Diving",
+};
+
+function signalFromVibe(tags: string[] | undefined): string {
+  const first = tags?.[0]?.toLowerCase();
+  if (first && VIBE_BADGE[first]) return VIBE_BADGE[first];
+  if (first) return `✦ ${first[0].toUpperCase()}${first.slice(1)}`;
+  return "✦ Trending";
 }
 
 function SectionEyebrow({ children }: { children: React.ReactNode }) {
