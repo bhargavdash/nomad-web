@@ -32,7 +32,11 @@ export default function PlanPage() {
   const store = useTripPlanStore();
   const [submitting, setSubmitting] = React.useState(false);
 
-  const isValid = store.destination.trim().length > 0;
+  const missingFields: string[] = [];
+  if (!store.destination.trim()) missingFields.push("destination");
+  if (!store.travelers) missingFields.push("traveler count");
+  if (!store.dates.from || !store.dates.to) missingFields.push("travel dates");
+  const isValid = missingFields.length === 0;
 
   const handleSubmit = async () => {
     if (!isValid || submitting) return;
@@ -137,7 +141,7 @@ export default function PlanPage() {
               </Button>
               {!isValid && (
                 <p className="mt-3 text-center text-[12px] text-[var(--color-muted)]">
-                  Pick a destination to continue
+                  Add {missingFields.join(", ")} to continue
                 </p>
               )}
             </div>
