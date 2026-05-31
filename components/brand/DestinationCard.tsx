@@ -12,6 +12,8 @@ interface DestinationCardProps {
   imageUrl?: string | null;
   /** Used only for the on-error fallback if `imageUrl` ever fails to load. */
   fallbackQuery?: string;
+  /** Set on the first above-the-fold card so Next preloads it as the LCP. */
+  priority?: boolean;
   onClick?: () => void;
 }
 
@@ -22,6 +24,7 @@ export function DestinationCard({
   signal,
   imageUrl,
   fallbackQuery,
+  priority,
   onClick,
 }: DestinationCardProps) {
   return (
@@ -37,6 +40,7 @@ export function DestinationCard({
           alt={`${name}, ${country}`}
           className="object-cover transition-transform duration-700 group-hover:scale-105"
           sizes="280px"
+          priority={priority}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
         <div className="absolute left-5 top-5">

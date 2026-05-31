@@ -14,6 +14,8 @@ interface ActiveTripCardProps {
   href?: string;
   /** Self-hosted hero photo — the same image shown on the trip detail hero. */
   imageUrl?: string | null;
+  /** Set when this is the above-the-fold hero so Next preloads it as the LCP. */
+  priority?: boolean;
   className?: string;
 }
 
@@ -25,6 +27,7 @@ export function ActiveTripCard({
   stats,
   href = "#",
   imageUrl,
+  priority,
   className,
 }: ActiveTripCardProps) {
   return (
@@ -43,6 +46,7 @@ export function ActiveTripCard({
         alt={destination}
         className="object-cover transition-transform duration-500 group-hover:scale-105"
         sizes="(max-width: 1024px) 100vw, 1376px"
+        priority={priority}
       />
       {/* Readability overlay — keeps the cream/white text legible over any photo. */}
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-[var(--color-navy)]/95 via-[var(--color-navy)]/80 to-[var(--color-navy)]/50" />

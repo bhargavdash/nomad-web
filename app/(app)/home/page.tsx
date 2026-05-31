@@ -115,6 +115,7 @@ export default function HomePage() {
             }}
             imageUrl={activeTrip.heroImageUrl}
             href={`/trips/${activeTrip.id}`}
+            priority
           />
         ) : (
           <HeroCTACard />
@@ -132,6 +133,7 @@ export default function HomePage() {
         }
         destinations={trending?.india ?? null}
         onPick={handleTrendingPick}
+        priorityFirst
       />
       <TrendingRow
         index={3}
@@ -174,6 +176,8 @@ type TrendingRowProps = {
   destinations: TrendingDest[] | null;
   onPick: (dest: TrendingDest) => void;
   className?: string;
+  /** Preload the first card's image as the LCP (only for the top row). */
+  priorityFirst?: boolean;
 };
 
 function TrendingRow({
@@ -183,6 +187,7 @@ function TrendingRow({
   destinations,
   onPick,
   className,
+  priorityFirst,
 }: TrendingRowProps) {
   const scrollRef = React.useRef<HTMLDivElement>(null);
   const scrollBy = (delta: number) => {
@@ -236,6 +241,7 @@ function TrendingRow({
                   signal={signalFromVibe(dest.vibe_tags)}
                   imageUrl={dest.imageUrl ?? unsplashByQuery(`${dest.name} ${dest.country}`)}
                   fallbackQuery={`${dest.name} ${dest.country}`}
+                  priority={priorityFirst === true && i === 0}
                   onClick={() => onPick(dest)}
                 />
               ))}
