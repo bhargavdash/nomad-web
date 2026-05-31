@@ -113,6 +113,7 @@ export default function HomePage() {
               tips: activeTrip.statsTips,
               photoStops: activeTrip.statsPhotoStops,
             }}
+            imageUrl={activeTrip.heroImageUrl}
             href={`/trips/${activeTrip.id}`}
           />
         ) : (
