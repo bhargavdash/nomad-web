@@ -2,7 +2,7 @@ export const DEMO_TRIP = {
   destination: 'Rajasthan, India',
   dates: { from: 'Mar 28', to: 'Apr 4' },
   duration: 7,
-  vibes: ['Photo spots', 'Local food', 'Handicrafts', 'Slow travel'],
+  vibes: ['Photo stops', 'Local favorites', 'Handicrafts', 'Hidden gems'],
   stats: { places: 38, tips: 34, photoStops: 17 },
   days: ['Jaipur', 'Jaipur', 'Jodhpur', 'Jodhpur → Jaisalmer', 'Jaisalmer', 'Jaisalmer', 'Jaipur'],
 };
@@ -20,16 +20,24 @@ export type SourceKey = keyof typeof SOURCE_BADGE_COLORS;
 
 export const VIBE_CATEGORIES = [
   {
-    label: 'Food + Drink',
-    vibes: ['Local cuisines', 'Street food', 'Chai stops', 'Fine dining'],
+    label: 'Food',
+    vibes: ['Local favorites', 'Street food', 'Aesthetic cafes', 'Luxury dining'],
   },
   {
     label: 'Explore',
-    vibes: ['Photo spots', 'Heritage walks', 'Handicrafts', 'Hidden gems', 'Sunrise spots'],
+    vibes: [
+      'Hidden gems',
+      'Photo stops',
+      'Sunrise points',
+      'Religious places',
+      'History & archaeology',
+      'Beaches',
+      'Mountains',
+    ],
   },
   {
     label: 'Shopping',
-    vibes: ['Local Markets', 'Luxury Boutiques', 'Artisan Crafts', 'Souvenirs'],
+    vibes: ['Handlooms', 'Local markets', 'Handicrafts', 'Souvenirs'],
   },
 ];
 
