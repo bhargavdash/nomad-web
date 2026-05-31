@@ -6,6 +6,7 @@ import { toast } from "sonner";
 
 import { StaggerSection } from "@/components/layout/StaggerSection";
 import { TripCard } from "@/components/brand/TripCard";
+import { useRefetchOnFocus } from "@/hooks/useRefetchOnFocus";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import type { TripSummary } from "@/types/api";
@@ -62,6 +63,18 @@ export default function MyTripsPage() {
       setLoading(false);
     }
   }, [fetchTrips]);
+
+  const refreshSilently = React.useCallback(async () => {
+    try {
+      const data = await fetchTrips();
+      setTrips(data);
+      setError(false);
+    } catch {
+      // keep existing data on background refresh failure
+    }
+  }, [fetchTrips]);
+
+  useRefetchOnFocus(refreshSilently, !loading);
 
   const counts = React.useMemo(
     () => ({
@@ -148,8 +161,22 @@ function LoadingList() {
       {Array.from({ length: 4 }).map((_, i) => (
         <div
           key={i}
-          className="h-[108px] animate-pulse rounded-[20px] border border-[var(--color-border-soft)] bg-[var(--color-warm-white)]"
-        />
+          className="flex items-center gap-5 rounded-[20px] border border-[var(--color-border-soft)] bg-[var(--color-warm-white)] p-5"
+        >
+          <div className="h-14 w-14 shrink-0 animate-pulse rounded-[16px] bg-[var(--color-cream-2)]" />
+          <div className="min-w-0 flex-1">
+            <div className="flex items-start justify-between gap-3">
+              <div className="h-[22px] w-2/3 animate-pulse rounded-md bg-[var(--color-cream-2)]" />
+              <div className="h-5 w-16 shrink-0 animate-pulse rounded-[100px] bg-[var(--color-cream-2)]" />
+            </div>
+            <div className="mt-3 h-3 w-1/2 animate-pulse rounded-md bg-[var(--color-cream-2)]" />
+            <div className="mt-4 flex items-center gap-4">
+              <div className="h-3 w-14 animate-pulse rounded-md bg-[var(--color-cream-2)]" />
+              <div className="h-3 w-12 animate-pulse rounded-md bg-[var(--color-cream-2)]" />
+              <div className="h-3 w-20 animate-pulse rounded-md bg-[var(--color-cream-2)]" />
+            </div>
+          </div>
+        </div>
       ))}
     </div>
   );

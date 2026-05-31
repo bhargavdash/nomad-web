@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@source not "../.claude/**";
 
 /* =========================================================================
    Nomad Design Tokens — exact values from c:/Users/DELL/code/nomad/.claude/rules/design-tokens.md

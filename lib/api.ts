@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, { AxiosError, type AxiosRequestConfig } from "axios";
 import { supabase } from "@/lib/supabase/client";
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000";
@@ -9,7 +9,6 @@ export const api = axios.create({
   headers: { "Content-Type": "application/json" },
 });
 
-// Inject Supabase access token on every request.
 api.interceptors.request.use(async (config) => {
   if (typeof window !== "undefined") {
     const { data } = await supabase().auth.getSession();
@@ -20,3 +19,31 @@ api.interceptors.request.use(async (config) => {
   }
   return config;
 });
+
+type RetryConfig = AxiosRequestConfig & { _retry?: boolean };
+
+api.interceptors.response.use(
+  (res) => res,
+  async (error: AxiosError) => {
+    const original = error.config as RetryConfig | undefined;
+    if (
+      error.response?.status === 401 &&
+      original &&
+      !original._retry &&
+      typeof window !== "undefined"
+    ) {
+      original._retry = true;
+      const { data, error: refreshErr } = await supabase().auth.refreshSession();
+      if (refreshErr || !data.session) {
+        await supabase().auth.signOut();
+        return Promise.reject(error);
+      }
+      original.headers = {
+        ...(original.headers ?? {}),
+        Authorization: `Bearer ${data.session.access_token}`,
+      };
+      return api.request(original);
+    }
+    return Promise.reject(error);
+  },
+);

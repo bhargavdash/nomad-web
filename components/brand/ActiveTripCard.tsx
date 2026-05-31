@@ -3,6 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { RemoteImage } from "./RemoteImage";
 
 interface ActiveTripCardProps {
   destination: string;
@@ -11,6 +12,10 @@ interface ActiveTripCardProps {
   duration: number;
   stats: { places: number; tips: number; photoStops: number };
   href?: string;
+  /** Self-hosted hero photo — the same image shown on the trip detail hero. */
+  imageUrl?: string | null;
+  /** Set when this is the above-the-fold hero so Next preloads it as the LCP. */
+  priority?: boolean;
   className?: string;
 }
 
@@ -21,6 +26,8 @@ export function ActiveTripCard({
   duration,
   stats,
   href = "#",
+  imageUrl,
+  priority,
   className,
 }: ActiveTripCardProps) {
   return (
@@ -31,9 +38,22 @@ export function ActiveTripCard({
         className,
       )}
     >
+      {/* Hero photo — same self-hosted image as the trip detail hero. Falls
+          back to RemoteImage's navy gradient placeholder when none resolved. */}
+      <RemoteImage
+        src={imageUrl}
+        fallbackQuery={destination}
+        alt={destination}
+        className="object-cover transition-transform duration-500 group-hover:scale-105"
+        sizes="(max-width: 1024px) 100vw, 1376px"
+        priority={priority}
+      />
+      {/* Readability overlay — keeps the cream/white text legible over any photo. */}
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-[var(--color-navy)]/95 via-[var(--color-navy)]/80 to-[var(--color-navy)]/50" />
+
       {/* Decorative glows */}
-      <div className="pointer-events-none absolute -top-20 -right-20 h-64 w-64 rounded-full bg-[var(--color-ember)]/30 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-24 -left-16 h-72 w-72 rounded-full bg-[var(--color-peach)]/20 blur-3xl" />
+      <div className="pointer-events-none absolute -top-20 -right-20 h-64 w-64 rounded-full bg-[var(--color-ember)]/25 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-24 -left-16 h-72 w-72 rounded-full bg-[var(--color-peach)]/15 blur-3xl" />
 
       <div className="relative">
         <div className="flex items-center gap-2">

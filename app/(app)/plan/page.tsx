@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
@@ -11,6 +11,7 @@ import { KeywordChip } from "@/components/brand/KeywordChip";
 import { LocationSearchInput } from "@/components/plan/LocationSearchInput";
 import { DateRangePopover } from "@/components/plan/DateRangePopover";
 import { AccommodationGrid } from "@/components/plan/AccommodationGrid";
+import { TrendingPickNote } from "@/components/plan/TrendingPickNote";
 import { StaggerSection } from "@/components/layout/StaggerSection";
 
 import {
@@ -28,9 +29,52 @@ import {
 } from "@/store/tripPlanStore";
 
 export default function PlanPage() {
+  return (
+    <React.Suspense fallback={null}>
+      <PlanPageInner />
+    </React.Suspense>
+  );
+}
+
+function PlanPageInner() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const store = useTripPlanStore();
   const [submitting, setSubmitting] = React.useState(false);
+
+  // SA-8 follow-up: trending-card deep link. The note only renders when the
+  // URL was opened via a trending click — direct visits to /plan see nothing.
+  const trendingPick = React.useMemo(() => {
+    if (searchParams.get("from") !== "trending") return null;
+    const dest = searchParams.get("dest");
+    if (!dest) return null;
+    const vibesParam = searchParams.get("vibes") ?? "";
+    return {
+      destination: dest,
+      country: searchParams.get("country"),
+      duration: searchParams.get("duration") ?? "",
+      blurb: searchParams.get("blurb") ?? "",
+      vibes: vibesParam ? vibesParam.split(",").filter(Boolean) : [],
+    };
+  }, [searchParams]);
+
+  // Prefill destination once when arriving from a trending card. Only writes
+  // when the field is empty so we never clobber the user's own typing.
+  const setDestination = store.setDestination;
+  React.useEffect(() => {
+    if (!trendingPick) return;
+    if (store.destination.trim()) return;
+    const combined = trendingPick.country
+      ? `${trendingPick.destination}, ${trendingPick.country}`
+      : trendingPick.destination;
+    setDestination(combined);
+    // intentional: we only run this when the search params change
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [trendingPick]);
+
+  const dismissTrendingPick = React.useCallback(() => {
+    router.replace("/plan");
+  }, [router]);
 
   const missingFields: string[] = [];
   if (!store.destination.trim()) missingFields.push("destination");
@@ -150,6 +194,17 @@ export default function PlanPage() {
 
         {/* Right: form sections */}
         <div className="flex flex-col gap-14">
+          {trendingPick && (
+            <TrendingPickNote
+              destination={trendingPick.destination}
+              country={trendingPick.country}
+              duration={trendingPick.duration}
+              blurb={trendingPick.blurb}
+              vibes={trendingPick.vibes}
+              onDismiss={dismissTrendingPick}
+            />
+          )}
+
           <Section index={2} eyebrow="The essentials" title="Where & when?">
             <div className="flex flex-col gap-4">
               <LocationSearchInput value={store.destination} onSelect={store.setDestination} />
