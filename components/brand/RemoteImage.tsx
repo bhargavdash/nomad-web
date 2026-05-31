@@ -31,10 +31,17 @@ interface RemoteImageProps {
  * bounded 1280px thumbnails, so that failure class is gone.)
  */
 export function RemoteImage({ src, alt, fallbackQuery, className, sizes = "100vw", priority }: RemoteImageProps) {
-  const [errored, setErrored] = React.useState(false);
+  // Fallback ladder: 0 = show the resolved `src`; 1 = deterministic themed
+  // Unsplash fallback (if `src` errors); 2 = give up and show only the gradient
+  // placeholder. This guarantees we never get stuck on a broken <img>: even if
+  // the Unsplash fallback URL itself 404s, we land on the gradient, not a
+  // permanent broken image. `display` is derived from `src` each render, so a
+  // late-arriving `src` (null while resolving) still renders once it's known.
+  const [failCount, setFailCount] = React.useState(0);
   const [loaded, setLoaded] = React.useState(false);
 
-  const display = errored ? unsplashByQuery(fallbackQuery) : src;
+  const display =
+    failCount === 0 ? src : failCount === 1 ? unsplashByQuery(fallbackQuery) : null;
 
   return (
     <>
@@ -50,7 +57,7 @@ export function RemoteImage({ src, alt, fallbackQuery, className, sizes = "100vw
           onLoad={() => setLoaded(true)}
           onError={() => {
             setLoaded(false);
-            setErrored(true);
+            setFailCount((count) => Math.min(count + 1, 2));
           }}
         />
       )}
