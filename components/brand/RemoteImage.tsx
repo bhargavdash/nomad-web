@@ -21,14 +21,14 @@ interface RemoteImageProps {
  * Renders an already-resolved image URL inside a relative parent (`fill`).
  * Shows a gradient placeholder until the image loads, and falls back to the
  * deterministic Unsplash library if the URL ever errors. Does NOT fetch —
- * callers pass a URL that's already known (resolved server-side), which is
+ * callers pass a URL that's already known (resolved at build time), which is
  * what removes the per-image round trip and skeleton delay.
  *
- * `unoptimized`: the URLs we render here come from already-sized CDNs
- * (Wikimedia /thumb/, Unsplash with ?w=&h=). Routing them through the Next
- * image optimizer adds latency and a 500 surface (a 20 MB Wikimedia original
- * once made the optimizer time out with a 500). Loading them directly from
- * the upstream CDN is faster and removes that failure class entirely.
+ * Images are now self-hosted (Supabase Storage) and pre-sized, so they run
+ * through the Next/Vercel image optimizer: AVIF/WebP + per-`sizes` resizing +
+ * edge caching. (The old `unoptimized` escape hatch existed only to dodge
+ * 20 MB Wikimedia originals timing out the optimizer; the agent now stores
+ * bounded 1280px thumbnails, so that failure class is gone.)
  */
 export function RemoteImage({ src, alt, fallbackQuery, className, sizes = "100vw", priority }: RemoteImageProps) {
   const [errored, setErrored] = React.useState(false);
@@ -44,7 +44,6 @@ export function RemoteImage({ src, alt, fallbackQuery, className, sizes = "100vw
           src={display}
           alt={alt}
           fill
-          unoptimized
           priority={priority}
           sizes={sizes}
           className={className}
