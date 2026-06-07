@@ -86,18 +86,21 @@ export default function ResearchingPage() {
               <p className="mt-2 text-[14px] leading-[1.55] text-[var(--color-muted)]">
                 {discovery.body}
               </p>
-              {discovery.tags.length > 0 && (
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {discovery.tags.map((t) => (
-                    <span
-                      key={t}
-                      className="rounded-[100px] bg-[var(--color-ember-light)] px-2.5 py-1 text-[11px] font-medium text-[var(--color-ember-dim)]"
-                    >
-                      {t}
-                    </span>
-                  ))}
-                </div>
-              )}
+              {(() => {
+                const cleanedTags = [...new Set(discovery.tags.map((t) => t.replace(/^[^\p{L}\p{N}\s]+\s*/u, "").trim()).filter(Boolean))];
+                return cleanedTags.length > 0 ? (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {cleanedTags.map((t) => (
+                      <span
+                        key={t}
+                        className="rounded-[100px] bg-[var(--color-ember-light)] px-2.5 py-1 text-[11px] font-medium text-[var(--color-ember-dim)]"
+                      >
+                        {t}
+                      </span>
+                    ))}
+                  </div>
+                ) : null;
+              })()}
             </motion.div>
           </AnimatePresence>
         </div>
