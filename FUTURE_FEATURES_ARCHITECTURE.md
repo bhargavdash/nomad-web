@@ -16,7 +16,7 @@ Each feature gets a **verdict box** (feasible? effort? free-tier safe?), then a 
 breakdown (`nomad-agent` / `nomad-api` / `nomad-web` / `nomad-mobile`), schema/API deltas, free-tier
 impact, and risks. Effort uses the board's scale: **1 SP ≈ 1 hour of focused work.**
 
-Jump to: [System snapshot](#1-system-snapshot) · [Free-tier budget](#2-free-tier-budget-the-binding-constraint) · [Build order](#3-dependency-graph--recommended-build-order) · [FI-5](#fi-5--in-trip-companion-today-view) · [FI-3](#fi-3--save--edit-trip-excel-like-ui) · [FI-1](#fi-1--itinerary-personalization-loop) · [FI-2](#fi-2--lock-places) · [FI-4](#fi-4--in-trip-expense-tracker) · [Roadmap](#6-consolidated-roadmap) · [Open decisions](#7-open-decisions-for-bhargav)
+Jump to: [System snapshot](#1-system-snapshot) · [Free-tier budget](#2-free-tier-budget-the-binding-constraint) · [Build order](#3-dependency-graph--recommended-build-order) · [FI-5](#fi-5--in-trip-companion-today-view) · [FI-3](#fi-3--save--edit-trip-excel-like-ui) · [FI-1](#fi-1--itinerary-personalization-loop) · [FI-2](#fi-2--lock-places) · [FI-4](#fi-4--in-trip-expense-tracker) · [FI-6](#fi-6--intelligent-multi-dimensional-research-cache) · [Roadmap](#6-consolidated-roadmap) · [Open decisions](#7-open-decisions-for-bhargav)
 
 ---
 
@@ -443,6 +443,117 @@ possible v2 — would need a vision model and is **not** trivially free-tier; ex
 
 ---
 
+## FI-6 — Intelligent Multi-Dimensional Research Cache
+
+> **Verdict:** ✅ **Feasible · Medium · Free-tier safe.** ~5 SP. Zero external cost. Pure in-process key redesign + Redis schema change. **Should be done before or alongside FI-1** — the personalization loop depends on the cached discovery pool being actually relevant to the user's trip, so a vibe-blind cache undermines FI-1's quality.
+
+**Goal:** Replace the flat destination-keyed cache with a multi-dimensional key that captures the axes that actually change what good research looks like: season, vibe cluster, and (optionally) budget tier. Same destination in different months or with different vibes should hit different cache entries and thus get appropriately targeted discovery pools.
+
+### The Problem (with code evidence)
+
+`app/cache.py` line 71:
+
+```python
+def _research_key(destination: str) -> str:
+    return f"nomad:research:{settings.CACHE_VERSION}:{_slug(destination)}"
+```
+
+This means **any trip to "Tokyo" hits the same discovery pool** regardless of:
+
+- **Month/season** — Tokyo in December (Christmas illuminations, kotatsu cafés, winter ramen) vs June (rainy season, hydrangeas, fewer crowds) are fundamentally different itineraries. The YouTube Shorts, Reddit tips, and blog posts that are relevant are completely different sets.
+- **Vibes** — An adventure traveller in Bali (jungle treks, cliff jumps, surf breaks) vs a luxury wellness traveller in Bali (seminyak spas, rice terrace yoga, Michelin dining) need different discovery pools. The research agents' query modifiers (`TravelSignals.query_modifiers`) already vary by vibe, but the cache ignores this and serves the same pool to both.
+- **Budget tier** — Budget backpacker vs luxury traveller in the same city: entirely different places, price points, and tips.
+
+The 45-day TTL (`RESEARCH_CACHE_TTL_DAYS`) means a summer pool can persist into autumn, serving wrong-season content for nearly 6 weeks.
+
+### Design: Composite Key + Season Buckets + Vibe Clusters
+
+**Chosen approach (free-tier safe, no new infra):** Extend the Redis key with two bucketed dimensions.
+
+```
+nomad:research:{ver}:{destination_slug}:{season_bucket}:{vibe_cluster}
+```
+
+**`season_bucket`** — 4 values, derived from `TripParams.dateFrom`:
+
+| Months (destination-local) | Bucket |
+|---|---|
+| Dec–Feb | `winter` |
+| Mar–May | `spring` |
+| Jun–Aug | `summer` |
+| Sep–Nov | `autumn` |
+
+Hemisphere-aware: flip for southern-hemisphere destinations (Australia, New Zealand, South Africa, South America) so `Dec–Feb` → `summer` not `winter`. A `SOUTHERN_HEMISPHERE_COUNTRIES` set in `app/signals.py` (already has similar logic) handles this. If `dateFrom` is absent, fall back to current-month bucket.
+
+**`vibe_cluster`** — Map the user's vibes array to one of 4 clusters to avoid key explosion:
+
+| Cluster key | Vibe tags that map to it |
+|---|---|
+| `adventure` | adventure, outdoor, trekking, sports, extreme |
+| `cultural` | cultural, heritage, history, art, architecture, spiritual |
+| `relaxation` | relaxation, wellness, beach, spa, romantic, slow |
+| `foodie` | foodie, nightlife, local-experience, shopping, urban |
+
+If a trip has multiple vibes spanning clusters, pick the cluster of the **first listed vibe** (the dominant one). This gives at most **4 × 4 = 16 cache slots per destination** — well within free-tier Redis limits.
+
+**Max cache footprint per destination:** 16 entries × ~80 KB avg = ~1.3 MB. Upstash free tier is 256 MB. Even 200 popular destinations = 260 MB — right at the edge; prune low-hit entries with a `KEYS` scan if needed, or accept that only hot (destination, season, cluster) combos stay warm.
+
+**TTL improvement:** Replace the fixed 45-day TTL with a **season-boundary-aware TTL**: compute days until the current season ends and set TTL to that (minimum 7 days as floor). A summer cache written on Aug 1 expires Aug 31 (end of summer), not Sep 15.
+
+### How — per repo
+
+**`nomad-agent`** (the only repo that needs changing)
+
+- **`app/cache.py`** — replace `_research_key(destination)` with:
+  ```python
+  def _research_key(destination: str, season: str, vibe_cluster: str) -> str:
+      return f"nomad:research:{settings.CACHE_VERSION}:{_slug(destination)}:{season}:{vibe_cluster}"
+  ```
+  Add helpers: `_vibe_to_cluster(vibes: list[str]) -> str` and `_season_bucket(date_from: str | None, destination: str) -> str` (hemisphere-aware). Both are pure functions — no I/O, unit-testable.
+
+  Update `get_cached_research` and `set_cached_research` to accept `season: str, vibe_cluster: str` params and compute the TTL as days-to-season-end.
+
+- **`app/graph/pipeline.py` / `research_gate_node`** — pass `signals.season` and the vibe cluster (derivable from `trip_params.vibes`) into the cache calls. `TravelSignals` already has `season: str` (it's set in `extract_signals`).
+
+- **`app/signals.py`** — add `vibe_cluster: str` field to `TravelSignals`, computed in `extract_signals` from the vibes array using the cluster mapping table above. Also add hemisphere detection helper used by `_season_bucket`.
+
+- **No schema migration, no new infra, no new env vars.** The CACHE_VERSION bump in `.env` is enough to invalidate old flat keys on deploy.
+
+**`nomad-api`**, **`nomad-web`**, **`nomad-mobile`** — no changes.
+
+### Cache invalidation on deploy
+
+Bump `CACHE_VERSION` (e.g. `v2`) in `nomad-agent/.env` and Railway env vars. All old `v1` keys become orphaned (Redis TTL will clear them eventually). New keys use the composite format from the first hit onward.
+
+### Free-tier impact
+
+**Zero new external cost.** More Redis keys per destination (up to 16 vs 1), but each key is the same size. Upstash free-tier storage is 256 MB — easily sufficient for the hot-destination working set. The only "cost" is that cold misses are more common initially (new dimensions mean fewer pre-populated entries), but each miss simply runs the research pipeline which was always the fallback path.
+
+### Risks & mitigations
+
+- **More cache misses at rollout** → intentional and correct (old flat entries were serving wrong-season/wrong-vibe content). Misses degrade gracefully (pipeline runs as before).
+- **Cluster boundary edge cases** (a trip with "adventure + romantic") → dominant-vibe rule is simple and predictable; document the tie-break.
+- **Upstash key count** → Upstash free tier allows 1000 keys max on the free plan. At 16 keys/destination that's 62 unique destinations before hitting the limit. Add a **cache eviction strategy**: when writing a new key, scan for the oldest entry for that destination and delete it if count ≥ 16. Or upgrade to Upstash paid ($0.20/100K commands) — negligible cost if the app gains real users.
+- **Southern hemisphere list needs maintenance** → seed it with the major cases; gaps are tolerated (worst case: wrong season bucket = same behaviour as today).
+
+### Recommended build order relative to other FIs
+
+Build FI-6 **before or as part of FI-1** (Personalization Loop). FI-1's refiner pulls from `get_cached_research()` — if the pool is season-blind, the refiner's "try something else" suggestions will be off-season too. FI-6 is the prerequisite for FI-1 to be genuinely good.
+
+### Effort breakdown
+
+| Sub-task | SP |
+|---|---|
+| `_vibe_to_cluster` + `_season_bucket` helpers + hemisphere set + unit tests | 1.5 |
+| Update `_research_key`, `get/set_cached_research` signatures + TTL logic | 1 |
+| Add `vibe_cluster` to `TravelSignals`, wire into `extract_signals` | 0.5 |
+| Wire new params through `research_gate_node` in `pipeline.py` | 0.5 |
+| Cache eviction guard (key count check on write) | 0.5 |
+| Integration test: same destination, different season/vibe → different keys | 1 |
+| **Total** | **~5 SP** |
+
+---
+
 ## 5. Cross-cutting concerns
 
 1. **Schema contract is dual-owned.** Any column change must be mirrored: Prisma (`nomad-api`) ⇄
@@ -472,16 +583,20 @@ possible v2 — would need a vision model and is **not** trivially free-tier; ex
 |-------|---------|:----:|:---:|:---:|:------:|-------------------|-------:|
 | 1 | **FI-5 Today View** | — | `visited` col + PATCH field | new `today` page + nav | fill stub (tab exists) | none | **~4 SP** |
 | 2 | **FI-3 Edit Trip** | — | extend stop PATCH, add `POST /stops`, (day PATCH) | edit-mode grid | editable cards + context menu | none | **~8 SP** |
-| 3 | **FI-1 Personalize Loop** | `refiner.py` + `/agent/refine` + role | `POST /trips/:id/refine` proxy | refine chat panel | refine bottom sheet | ~1 free LLM call/refine | **~9 SP** |
-| 4 | **FI-2 Lock Places** | refiner honors `locked` | feeds `locked_stop_ids` | visible lock state | context-menu lock | none | **~2 SP** |
-| 5 | **FI-4 Expense Tracker** | — | 3 models + `expenses` router + settle-up | expenses tab + settle UI | expenses tab | none | **~7–12 SP** |
+| 3 | **FI-6 Smart Cache** | composite key + season/vibe bucketing in `cache.py` + `signals.py` | none | none | none | none | **~5 SP** |
+| 4 | **FI-1 Personalize Loop** | `refiner.py` + `/agent/refine` + role | `POST /trips/:id/refine` proxy | refine chat panel | refine bottom sheet | ~1 free LLM call/refine | **~9 SP** |
+| 5 | **FI-2 Lock Places** | refiner honors `locked` | feeds `locked_stop_ids` | visible lock state | context-menu lock | none | **~2 SP** |
+| 6 | **FI-4 Expense Tracker** | — | 3 models + `expenses` router + settle-up | expenses tab + settle UI | expenses tab | none | **~7–12 SP** |
 
-**Totals:** ~30–35 SP for all five (single-owner FI-4). At the board's ~8–10 SP/week cadence, that's roughly
-**3–4 weeks** of evenings+weekends — but each is independently shippable, so you can stop after any one.
+**Totals:** ~35–40 SP for all six (single-owner FI-4). At the board's ~8–10 SP/week cadence, that's roughly
+**4 weeks** of evenings+weekends — but each is independently shippable, so you can stop after any one.
+**FI-6 must precede FI-1** — the personalization loop's refiner draws from the research cache; a vibe-blind
+cache undermines FI-1's quality.
 
 **Suggested grouping into branches/mini-sprints**
 - *Quick wins:* FI-5 → FI-3 (both pure CRUD/UI, no agent risk).
-- *AI showcase:* FI-1 + FI-2 together (one branch — lock is meaningless without refine).
+- *Cache fix:* FI-6 alone (`feat/smart-cache`) — agent-only, no API/FE changes, safe to land any time.
+- *AI showcase:* FI-6 → FI-1 + FI-2 together (one branch — lock is meaningless without refine; cache must be smart first).
 - *Breadth vertical:* FI-4 last, scoped to single-owner.
 
 ---
@@ -498,9 +613,11 @@ possible v2 — would need a vision model and is **not** trivially free-tier; ex
    ("multi-agent system that iterates with the user"). If the goal is breadth, **FI-4** shows full-stack
    product range. Which do you want first?
 5. **Hardening gate** — land SB-1/SB-2 before or alongside these (esp. rate-limiting `/refine`)?
+6. **FI-6 vibe cluster granularity** — 4 clusters (adventure/cultural/relaxation/foodie) is the recommendation, but is 3 or 5 a better fit for your actual user base? The cluster mapping is a one-file change so you can tune it post-launch with real data.
+7. **FI-6 Upstash key-count limit** — free tier allows 1000 keys. At 16 keys/destination this caps out at ~62 popular destinations before needing eviction logic or an Upstash upgrade ($0.20/100K commands). Is this acceptable, or should the eviction guard be part of the initial FI-6 build?
 
 ---
 
-*Generated from a read-through of all four repos on 2026-06-04. No code was modified. File lives in
+*Generated from a read-through of all four repos on 2026-06-04. FI-6 added 2026-06-06. No code has been modified. File lives in
 `nomad-web/` per request; the canonical feature backlog remains the
-[Nomad sprint board](file:///C:/DevBrain/wiki/projects/nomad-board.md) (FI-1…FI-5).*
+[Nomad sprint board](file:///Users/bhargav/DevBrain/wiki/projects/nomad-board.md) (FI-1…FI-6).*

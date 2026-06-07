@@ -37,7 +37,6 @@ export default function SignInPage() {
 
   const handleGoogle = async () => {
     const redirectTo = `${window.location.origin}/auth/callback`;
-    console.log("[signin] Initiating Google OAuth", { redirectTo });
     const { data, error } = await supabase().auth.signInWithOAuth({
       provider: "google",
       options: { redirectTo },
@@ -47,7 +46,6 @@ export default function SignInPage() {
       toast.error(error.message);
       return;
     }
-    console.log("[signin] Redirecting to Google OAuth URL", { url: data?.url });
   };
 
   return (
