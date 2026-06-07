@@ -35,7 +35,7 @@ export const TextArea = React.forwardRef<
     className={cn(
       "min-h-[120px] w-full resize-y rounded-[14px] bg-[var(--color-warm-white)] px-4 py-3 font-sans text-[15px] text-[var(--color-ink)] placeholder:text-[var(--color-muted)]",
       "border-[1.5px] border-[var(--color-border-soft)] outline-none transition-all duration-150",
-      "focus:border-[var(--color-ember)] focus:ring-[3px] focus:ring-[var(--color-ember)]/15",
+      "focus:border-[var(--color-ink)] focus:ring-[3px] focus:ring-[var(--color-ink)]/10",
       className,
     )}
     {...props}

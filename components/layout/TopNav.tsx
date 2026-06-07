@@ -42,16 +42,13 @@ export function TopNav() {
                 key={link.href}
                 href={link.href}
                 className={cn(
-                  "relative rounded-[100px] px-4 py-2 text-[14px] font-medium transition-colors duration-150",
+                  "relative rounded-[100px] px-4 py-2 text-label-m transition-colors duration-150",
                   active
                     ? "text-[var(--color-ink)]"
                     : "text-[var(--color-muted)] hover:text-[var(--color-ink)]",
                 )}
               >
                 {link.label}
-                {active && (
-                  <span className="absolute -bottom-[2px] left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-[var(--color-ember)]" />
-                )}
               </Link>
             );
           })}
@@ -60,10 +57,10 @@ export function TopNav() {
         <Link href="/profile" className="flex items-center gap-3 group">
           <UserAvatar url={avatarUrl} name={displayName} email={user?.email} size={36} />
           <div className="hidden md:block text-right leading-tight">
-            <div className="text-[13px] font-medium text-[var(--color-ink)]">
+            <div className="text-body-xs font-medium text-[var(--color-ink)]">
               {displayName?.split(" ")[0] ?? "You"}
             </div>
-            <div className="text-[11px] text-[var(--color-muted)]">View profile</div>
+            <div className="text-label-s text-[var(--color-muted)]">View profile</div>
           </div>
         </Link>
       </div>

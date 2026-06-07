@@ -38,8 +38,8 @@ interface TripPlanActions {
   setTravelers: (value: TravelerCount) => void;
   toggleVibe: (vibe: string) => void;
   setAccommodation: (value: AccommodationType | null) => void;
-  setPace: (value: PaceType) => void;
-  setBudget: (value: BudgetTier) => void;
+  setPace: (value: PaceType | null) => void;
+  setBudget: (value: BudgetTier | null) => void;
   setPreferences: (value: string) => void;
   setCurrentTripId: (id: string) => void;
   reset: () => void;
@@ -69,8 +69,8 @@ export const useTripPlanStore = create<TripPlanState & TripPlanActions>()((set) 
         : [...state.selectedVibes, vibe],
     })),
   setAccommodation: (value) => set({ accommodation: value ?? null }),
-  setPace: (value) => set({ pace: value }),
-  setBudget: (value) => set({ budget: value }),
+  setPace: (value) => set({ pace: value ?? null }),
+  setBudget: (value) => set({ budget: value ?? null }),
   setPreferences: (value) => set({ preferences: value }),
   setCurrentTripId: (id) => set({ currentTripId: id }),
   reset: () => set(INITIAL_STATE),

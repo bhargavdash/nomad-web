@@ -21,6 +21,7 @@ export default function HomePage() {
   const user = useAuthStore((s) => s.user);
   const profile = useAuthStore((s) => s.profile);
   const [activeTrip, setActiveTrip] = React.useState<TripSummary | null>(null);
+  const [tripsLoading, setTripsLoading] = React.useState(true);
   const [trending, setTrending] = React.useState<TrendingResponse | null>(null);
 
   const handleTrendingPick = React.useCallback(
@@ -51,9 +52,11 @@ export default function HomePage() {
         if (cancelled) return;
         const active = res.data.trips.find((t) => t.status === "active" || t.status === "ready");
         setActiveTrip(active ?? null);
+        setTripsLoading(false);
       })
       .catch((err) => {
         if (cancelled) return;
+        setTripsLoading(false);
         const status = err?.response?.status;
         if (status && status !== 401) {
           toast.error("Couldn't load your active trip");
@@ -88,9 +91,6 @@ export default function HomePage() {
     <div className="mx-auto max-w-[1440px] px-8 pb-24">
       {/* Greeting */}
       <StaggerSection index={0} className="pt-12">
-        <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-[var(--color-muted)]">
-          {getTimeOfDay()}
-        </span>
         <h1 className="mt-3 max-w-[820px] font-display text-[64px] font-extrabold leading-[1.02] text-[var(--color-ink)]">
           Good {getTimeOfDay()}, <span className="text-wander">{firstName}</span>.
         </h1>
@@ -102,7 +102,9 @@ export default function HomePage() {
 
       {/* Hero — full width now that the insights column is gone (SA-8) */}
       <StaggerSection index={1} className="mt-14">
-        {activeTrip ? (
+        {tripsLoading ? (
+          <HeroSkeleton />
+        ) : activeTrip ? (
           <ActiveTripCard
             destination={activeTrip.destination}
             dateFrom={activeTrip.dateFrom ?? DEMO_TRIP.dates.from}
@@ -247,6 +249,31 @@ function TrendingRow({
               ))}
       </motion.div>
     </StaggerSection>
+  );
+}
+
+function HeroSkeleton() {
+  return (
+    <div className="w-full overflow-hidden rounded-[24px] bg-[var(--color-cream-2)] p-8 shadow-active-trip animate-pulse h-[400px]">
+      <div className="flex h-full flex-col justify-between">
+        <div>
+          <div className="h-3 w-20 rounded-full bg-[var(--color-border-soft)]" />
+          <div className="mt-6 h-9 w-64 rounded-[10px] bg-[var(--color-border-soft)]" />
+          <div className="mt-3 h-4 w-48 rounded-full bg-[var(--color-border-soft)]" />
+        </div>
+        <div>
+          <div className="mb-6 grid grid-cols-3 gap-4 border-t border-[var(--color-border-soft)] pt-6">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i}>
+                <div className="h-8 w-12 rounded-[8px] bg-[var(--color-border-soft)]" />
+                <div className="mt-2 h-2.5 w-16 rounded-full bg-[var(--color-border-soft)]" />
+              </div>
+            ))}
+          </div>
+          <div className="h-4 w-32 rounded-full bg-[var(--color-border-soft)]" />
+        </div>
+      </div>
+    </div>
   );
 }
 

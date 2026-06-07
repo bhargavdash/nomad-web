@@ -58,7 +58,7 @@ export function LocationSearchInput({
           placeholder={placeholder}
           className={cn(
             "h-14 w-full rounded-[16px] border-[1.5px] border-[var(--color-border-soft)] bg-[var(--color-warm-white)] pl-12 pr-12 font-sans text-[16px] text-[var(--color-ink)] placeholder:text-[var(--color-muted)] outline-none transition-all",
-            "focus:border-[var(--color-ember)] focus:ring-[3px] focus:ring-[var(--color-ember)]/15",
+            "focus:border-[var(--color-ink)] focus:ring-[3px] focus:ring-[var(--color-ink)]/10",
           )}
         />
         {query && (
