@@ -7,7 +7,6 @@ interface DestinationCardProps {
   name: string;
   country: string;
   duration: string;
-  signal: string;
   /** Pre-resolved image URL (baked into the static trending data). */
   imageUrl?: string | null;
   /** Used only for the on-error fallback if `imageUrl` ever fails to load. */
@@ -21,7 +20,6 @@ export function DestinationCard({
   name,
   country,
   duration,
-  signal,
   imageUrl,
   fallbackQuery,
   priority,
@@ -43,11 +41,6 @@ export function DestinationCard({
           priority={priority}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
-        <div className="absolute left-5 top-5">
-          <span className="rounded-[100px] bg-white/15 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.08em] text-white backdrop-blur-md">
-            {signal}
-          </span>
-        </div>
         <div className="absolute bottom-5 left-5 right-5">
           <div className="font-display text-[28px] font-extrabold leading-tight text-white">
             {name}

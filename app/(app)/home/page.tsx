@@ -110,11 +110,6 @@ export default function HomePage() {
             dateFrom={activeTrip.dateFrom ?? DEMO_TRIP.dates.from}
             dateTo={activeTrip.dateTo ?? DEMO_TRIP.dates.to}
             duration={activeTrip.durationDays ?? DEMO_TRIP.duration}
-            stats={{
-              places: activeTrip.statsPlaces,
-              tips: activeTrip.statsTips,
-              photoStops: activeTrip.statsPhotoStops,
-            }}
             imageUrl={activeTrip.heroImageUrl}
             href={`/trips/${activeTrip.id}`}
             priority
@@ -203,8 +198,7 @@ function TrendingRow({
     <StaggerSection index={index} className={className ?? "mt-20"}>
       <div className="mb-6 flex items-end justify-between">
         <div>
-          <SectionEyebrow>{eyebrow}</SectionEyebrow>
-          <h2 className="mt-2 font-display text-[36px] font-extrabold leading-tight text-[var(--color-ink)]">
+          <h2 className="font-display text-[36px] font-extrabold leading-tight text-[var(--color-ink)]">
             {title}
           </h2>
         </div>
@@ -240,7 +234,6 @@ function TrendingRow({
                   name={dest.name}
                   country={dest.country}
                   duration={dest.duration}
-                  signal={signalFromVibe(dest.vibe_tags)}
                   imageUrl={dest.imageUrl ?? unsplashByQuery(`${dest.name} ${dest.country}`)}
                   fallbackQuery={`${dest.name} ${dest.country}`}
                   priority={priorityFirst === true && i === 0}
@@ -291,33 +284,6 @@ function EmptyTrending() {
       Refreshing trending picks for this season — check back in a minute.
     </div>
   );
-}
-
-const VIBE_BADGE: Record<string, string> = {
-  beach: "Beach",
-  mountains: "Mountains",
-  heritage: "Heritage",
-  food: "Foodie",
-  nightlife: "Nightlife",
-  adventure: "Adventure",
-  spiritual: "Spiritual",
-  luxury: "Luxury",
-  offbeat: "Offbeat",
-  family: "Family",
-  romance: "Romance",
-  wellness: "Wellness",
-  wildlife: "Wildlife",
-  nature: "Nature",
-  culture: "Culture",
-  coastal: "Coastal",
-  diving: "Diving",
-};
-
-function signalFromVibe(tags: string[] | undefined): string {
-  const first = tags?.[0]?.toLowerCase();
-  if (first && VIBE_BADGE[first]) return VIBE_BADGE[first];
-  if (first) return `✦ ${first[0].toUpperCase()}${first.slice(1)}`;
-  return "✦ Trending";
 }
 
 function SectionEyebrow({ children }: { children: React.ReactNode }) {
