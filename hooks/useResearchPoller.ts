@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import type { AxiosError } from "axios";
 import { api } from "@/lib/api";
 import type { ResearchDiscovery, ResearchJobResponse } from "@/types/api";
 
@@ -34,6 +35,8 @@ export function useResearchPoller(tripId: string, onComplete: () => void) {
   const [activeSource, setActiveSource] = React.useState("youtube");
   const [discovery, setDiscovery] = React.useState<ResearchDiscovery>(INITIAL_DISCOVERY);
   const [hasError, setHasError] = React.useState(false);
+  const [isRateLimited, setIsRateLimited] = React.useState(false);
+  const [retryAfterMs, setRetryAfterMs] = React.useState<number | null>(null);
   const [restartKey, setRestartKey] = React.useState(0);
 
   const onCompleteRef = React.useRef(onComplete);
@@ -43,6 +46,8 @@ export function useResearchPoller(tripId: string, onComplete: () => void) {
 
   const retry = React.useCallback(() => {
     setHasError(false);
+    setIsRateLimited(false);
+    setRetryAfterMs(null);
     setProgress(0);
     setProgressLabel("STARTING RESEARCH…");
     setDiscovery(INITIAL_DISCOVERY);
@@ -52,15 +57,23 @@ export function useResearchPoller(tripId: string, onComplete: () => void) {
   React.useEffect(() => {
     let cancelled = false;
     let completed = false;
+    let stopped = false; // set on 429 to prevent further ticks
     let failures = 0;
     let prevDiscoveryCount = 0;
+    // Exponential backoff for 5xx/network: skip poll ticks until this passes
+    let backoffUntil = 0;
+    let backoffMs = POLL_INTERVAL;
 
     const poll = async () => {
-      if (cancelled || completed) return;
+      if (cancelled || completed || stopped) return;
+      // Still in backoff window — skip this tick
+      if (Date.now() < backoffUntil) return;
+
       try {
         const res = await api.get<ResearchJobResponse>(`/trips/${tripId}/research`);
         const data = res.data;
         failures = 0;
+        backoffMs = POLL_INTERVAL;
         if (cancelled || completed) return;
 
         if (data.status === "failed") {
@@ -89,6 +102,24 @@ export function useResearchPoller(tripId: string, onComplete: () => void) {
           }, 700);
         }
       } catch (err) {
+        const status = (err as AxiosError)?.response?.status;
+
+        // 429: rate limited — stop polling, surface specific state, do NOT
+        // auto-retry (hammering a rate-limited endpoint wastes quota).
+        if (status === 429) {
+          stopped = true;
+          const retryAfterHeader = (err as AxiosError)?.response?.headers?.["retry-after"];
+          const waitMs = retryAfterHeader
+            ? parseInt(retryAfterHeader as string, 10) * 1000
+            : 60_000;
+          setIsRateLimited(true);
+          setRetryAfterMs(waitMs);
+          return;
+        }
+
+        // 5xx / network: exponential backoff, then count toward hard-stop
+        backoffMs = Math.min(backoffMs * 2, 30_000);
+        backoffUntil = Date.now() + backoffMs;
         failures += 1;
         if (failures >= MAX_CONSECUTIVE_FAILURES) {
           setHasError(true);
@@ -113,6 +144,8 @@ export function useResearchPoller(tripId: string, onComplete: () => void) {
     activeSource,
     discovery,
     hasError,
+    isRateLimited,
+    retryAfterMs,
     retry,
   };
 }

@@ -5,6 +5,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
+import type { AxiosError } from "axios";
+
 import { Button } from "@/components/ui/button";
 import { TextArea } from "@/components/ui/input";
 import { KeywordChip } from "@/components/brand/KeywordChip";
@@ -115,7 +117,17 @@ function PlanPageInner() {
       router.push(`/trips/${trip.id}/researching`);
     } catch (err) {
       console.error("[Plan] POST /trips failed:", err);
-      toast.error("Couldn't create your trip. Please try again.");
+      const status = (err as AxiosError)?.response?.status;
+      if (status === 429) {
+        const retryAfter = (err as AxiosError)?.response?.headers?.["retry-after"];
+        const waitMin = retryAfter ? Math.ceil(parseInt(retryAfter as string, 10) / 60) : 60;
+        toast.error(
+          `Trip limit reached — you've planned 10 trips this hour. Try again in ~${waitMin} minute${waitMin === 1 ? "" : "s"}.`,
+          { duration: 8000 },
+        );
+      } else {
+        toast.error("Couldn't create your trip. Please try again.");
+      }
     } finally {
       setSubmitting(false);
     }

@@ -14,7 +14,7 @@ export default function ResearchingPage() {
   const router = useRouter();
   const tripId = params.id;
 
-  const { progress, progressLabel, stats, activeSource, discovery, phase, hasError, retry } =
+  const { progress, progressLabel, stats, activeSource, discovery, phase, hasError, isRateLimited, retryAfterMs, retry } =
     useResearchPoller(tripId, () => router.replace(`/trips/${tripId}`));
 
   return (
@@ -132,7 +132,21 @@ export default function ResearchingPage() {
           })}
         </div>
 
-        {hasError && (
+        {isRateLimited && (
+          <div className="mt-6 rounded-[16px] border-[1.5px] border-amber-300 bg-amber-50 p-5 text-center">
+            <p className="font-mono text-[11px] uppercase tracking-[0.12em] text-amber-600">
+              ⏱ Server busy
+            </p>
+            <p className="mt-2 text-[14px] text-amber-800">
+              {`Too many requests. Your trip is saved — wait about ${retryAfterMs ? Math.ceil(retryAfterMs / 60_000) : 1} minute${retryAfterMs && retryAfterMs <= 60_000 ? '' : 's'} and retry.`}
+            </p>
+            <Button variant="primary" size="sm" onClick={retry} className="mt-3">
+              Retry
+            </Button>
+          </div>
+        )}
+
+        {hasError && !isRateLimited && (
           <div className="mt-6 rounded-[16px] border-[1.5px] border-red-300 bg-red-50 p-5 text-center">
             <p className="text-[14px] text-red-700">
               We hit a snag reading sources. The trip is saved — you can try again.
