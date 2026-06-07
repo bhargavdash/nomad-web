@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { Compass } from "lucide-react";
 import { toast } from "sonner";
 
 import { StaggerSection } from "@/components/layout/StaggerSection";
@@ -202,7 +203,7 @@ function ErrorState({ onRetry }: { onRetry: () => void }) {
 function EmptyState() {
   return (
     <div className="flex flex-col items-center rounded-[20px] border border-[var(--color-border-soft)] bg-[var(--color-warm-white)] py-16 text-center">
-      <div className="text-[40px]">🧭</div>
+      <Compass size={40} className="text-[var(--color-muted)]" strokeWidth={1.5} />
       <p className="mt-3 font-display text-[24px] font-bold text-[var(--color-ink)]">No trips yet</p>
       <p className="mt-2 max-w-[360px] text-[14px] text-[var(--color-muted)]">
         Plan your first adventure and it&apos;ll show up here.

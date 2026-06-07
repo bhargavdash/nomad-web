@@ -16,6 +16,10 @@ interface PostcardCardProps {
   exiting?: boolean;
 }
 
+function cleanTag(t: string): string {
+  return t.replace(/^[^\p{L}\p{N}\s]+\s*/u, "").trim();
+}
+
 export function PostcardCard({ stop, onLockToggle, onRemove, exiting }: PostcardCardProps) {
   return (
     <motion.article
@@ -98,7 +102,7 @@ export function PostcardCard({ stop, onLockToggle, onRemove, exiting }: Postcard
                   : "bg-white/10 text-white/65",
               )}
             >
-              {t}
+              {cleanTag(t)}
             </span>
           ))}
         </div>
