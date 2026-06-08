@@ -189,7 +189,7 @@ function PlanPageInner() {
               >
                 {submitting ? "Planning…" : "Plan my trip"}
                 {!submitting && store.selectedVibes.length > 0 && (
-                  <span className="ml-1 rounded-[100px] bg-[var(--color-white)]/25 px-2 py-0.5 text-mono-s">
+                  <span className="ml-1 rounded-[100px] bg-white/25 px-2 py-0.5 text-mono-s">
                     {store.selectedVibes.length}
                   </span>
                 )}
@@ -257,7 +257,7 @@ function PlanPageInner() {
                   key={opt}
                   label={opt}
                   active={store.pace === opt}
-                  onClick={() => store.setPace(store.pace === opt ? null : (opt as PaceType))}
+                  onClick={() => store.setPace(opt as PaceType)}
                   variant="terracotta"
                 />
               ))}
@@ -271,7 +271,7 @@ function PlanPageInner() {
                   key={tier}
                   label={tier}
                   active={store.budget === tier}
-                  onClick={() => store.setBudget(store.budget === tier ? null : (tier as BudgetTier))}
+                  onClick={() => store.setBudget(tier as BudgetTier)}
                   variant="terracotta"
                 />
               ))}

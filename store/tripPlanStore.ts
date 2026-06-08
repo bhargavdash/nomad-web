@@ -21,9 +21,9 @@ interface TripPlanState {
   dates: DateRange;
   travelers: TravelerCount | null;
   selectedVibes: string[];
-  accommodation: AccommodationType | null;
-  pace: PaceType | null;
-  budget: BudgetTier | null;
+  accommodation: AccommodationType;
+  pace: PaceType;
+  budget: BudgetTier;
   preferences: string;
   currentTripId: string | null;
 }
@@ -33,9 +33,9 @@ interface TripPlanActions {
   setDates: (dates: DateRange) => void;
   setTravelers: (value: TravelerCount) => void;
   toggleVibe: (vibe: string) => void;
-  setAccommodation: (value: AccommodationType | null) => void;
-  setPace: (value: PaceType | null) => void;
-  setBudget: (value: BudgetTier | null) => void;
+  setAccommodation: (value: AccommodationType) => void;
+  setPace: (value: PaceType) => void;
+  setBudget: (value: BudgetTier) => void;
   setPreferences: (value: string) => void;
   setCurrentTripId: (id: string) => void;
   reset: () => void;
@@ -46,9 +46,9 @@ const INITIAL_STATE: TripPlanState = {
   dates: { from: null, to: null },
   travelers: null,
   selectedVibes: [],
-  accommodation: null,
-  pace: null,
-  budget: null,
+  accommodation: "Budget Hotel",
+  pace: "Balanced",
+  budget: "Medium",
   preferences: "",
   currentTripId: null,
 };
@@ -64,9 +64,9 @@ export const useTripPlanStore = create<TripPlanState & TripPlanActions>()((set) 
         ? state.selectedVibes.filter((v) => v !== vibe)
         : [...state.selectedVibes, vibe],
     })),
-  setAccommodation: (value) => set({ accommodation: value ?? null }),
-  setPace: (value) => set({ pace: value ?? null }),
-  setBudget: (value) => set({ budget: value ?? null }),
+  setAccommodation: (value) => set({ accommodation: value }),
+  setPace: (value) => set({ pace: value }),
+  setBudget: (value) => set({ budget: value }),
   setPreferences: (value) => set({ preferences: value }),
   setCurrentTripId: (id) => set({ currentTripId: id }),
   reset: () => set(INITIAL_STATE),
