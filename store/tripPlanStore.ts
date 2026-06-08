@@ -5,14 +5,7 @@ import { create } from "zustand";
 // column without conversion. Older trips may still carry legacy "3+"/"large".
 export type TravelerCount = string;
 
-export type AccommodationType =
-  | "Boutique Villa"
-  | "Luxury Hotel"
-  | "Eco Lodge"
-  | "Homestay"
-  | "Airbnb"
-  | "Hostel"
-  | "Custom Stay";
+export type AccommodationType = "Hostel" | "Budget Hotel" | "Luxury Hotel" | "Airbnb / Homestay";
 
 export type PaceType = "Slow & Soulful" | "Balanced" | "Action-Packed";
 
