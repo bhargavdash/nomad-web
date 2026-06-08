@@ -12,6 +12,13 @@ interface PopoverContextValue {
 
 const PopoverCtx = React.createContext<PopoverContextValue | null>(null);
 
+/** Close the enclosing popover — e.g. after a single-select option is picked. */
+export function usePopoverClose(): () => void {
+  const ctx = React.useContext(PopoverCtx);
+  if (!ctx) throw new Error("usePopoverClose must be used inside Popover");
+  return React.useCallback(() => ctx.setOpen(false), [ctx]);
+}
+
 export function Popover({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = React.useState(false);
   const triggerRef = React.useRef<HTMLButtonElement | null>(null);

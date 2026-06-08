@@ -50,14 +50,11 @@ export default function SignInPage() {
 
   return (
     <AuthShell>
-      <span className="font-mono text-[11px] uppercase tracking-[0.12em] text-[var(--color-ember)]">
+      <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-[var(--color-ember)]">
         Welcome back
       </span>
 
-      <h1 className="mt-3 font-display text-[44px] font-extrabold leading-[1.05] text-[var(--color-ink)]">
-        Where will the <span className="text-wander">wander</span> take you?
-      </h1>
-      <p className="mt-3 text-[15px] text-[var(--color-muted)]">
+      <p className="mt-3 text-body-m text-[var(--color-muted)]">
         Sign in to pick up your trip, or start a new itinerary.
       </p>
 
@@ -104,7 +101,7 @@ export default function SignInPage() {
         Continue with Google
       </Button>
 
-      <p className="mt-8 text-[13px] text-[var(--color-muted)]">
+      <p className="mt-8 text-body-xs text-[var(--color-muted)]">
         New here?{" "}
         <Link
           href="/signup"
@@ -119,6 +116,7 @@ export default function SignInPage() {
 
 function GoogleIcon() {
   return (
+    // Google brand colors — permitted exception to no-hardcoded-hex rule
     <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden>
       <path
         fill="#4285F4"

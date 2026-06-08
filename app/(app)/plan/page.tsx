@@ -12,6 +12,7 @@ import { TextArea } from "@/components/ui/input";
 import { KeywordChip } from "@/components/brand/KeywordChip";
 import { LocationSearchInput } from "@/components/plan/LocationSearchInput";
 import { DateRangePopover } from "@/components/plan/DateRangePopover";
+import { TravelerSelect } from "@/components/plan/TravelerSelect";
 import { AccommodationGrid } from "@/components/plan/AccommodationGrid";
 import { TrendingPickNote } from "@/components/plan/TrendingPickNote";
 import { StaggerSection } from "@/components/layout/StaggerSection";
@@ -20,12 +21,10 @@ import {
   VIBE_CATEGORIES,
   PACE_OPTIONS,
   BUDGET_TIERS,
-  TRAVELER_OPTIONS,
 } from "@/data/placeholders";
 import { api } from "@/lib/api";
 import {
   useTripPlanStore,
-  type TravelerCount,
   type PaceType,
   type BudgetTier,
 } from "@/store/tripPlanStore";
@@ -139,7 +138,7 @@ function PlanPageInner() {
         <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-[var(--color-ember)]">
           New itinerary
         </span>
-        <h1 className="mt-3 max-w-[820px] font-display text-[56px] font-extrabold leading-[1.05] text-[var(--color-ink)]">
+        <h1 className="mt-3 max-w-[820px] text-display-xl text-[var(--color-ink)]">
           Tell us the <span className="text-wander">vibe</span>. We&apos;ll write the trip.
         </h1>
       </StaggerSection>
@@ -148,11 +147,11 @@ function PlanPageInner() {
         {/* Left: sticky summary */}
         <aside className="lg:sticky lg:top-[100px] lg:self-start">
           <StaggerSection index={1}>
-            <div className="rounded-[24px] border-[1.5px] border-[var(--color-border-soft)] bg-white p-7 shadow-card">
-              <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-muted)]">
+            <div className="rounded-[20px] border-[1.5px] border-[var(--color-border-soft)] bg-[var(--color-warm-white)] p-7 shadow-card">
+              <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-[var(--color-muted)]">
                 Your trip so far
               </span>
-              <h3 className="mt-3 font-display text-[24px] font-bold leading-tight text-[var(--color-ink)]">
+              <h3 className="mt-3 text-display-s text-[var(--color-ink)]">
                 {store.destination || "Somewhere unexpected"}
               </h3>
 
@@ -190,13 +189,13 @@ function PlanPageInner() {
               >
                 {submitting ? "Planning…" : "Plan my trip"}
                 {!submitting && store.selectedVibes.length > 0 && (
-                  <span className="ml-1 rounded-[100px] bg-white/25 px-2 py-0.5 text-[11px] font-mono">
+                  <span className="ml-1 rounded-[100px] bg-[var(--color-white)]/25 px-2 py-0.5 text-mono-s">
                     {store.selectedVibes.length}
                   </span>
                 )}
               </Button>
               {!isValid && (
-                <p className="mt-3 text-center text-[12px] text-[var(--color-muted)]">
+                <p className="mt-3 text-center text-label-s text-[var(--color-muted)]">
                   Add {missingFields.join(", ")} to continue
                 </p>
               )}
@@ -217,25 +216,18 @@ function PlanPageInner() {
             />
           )}
 
-          <Section index={2} eyebrow="The essentials" title="Where & when?">
+          <Section index={2} title="The essentials">
             <div className="flex flex-col gap-4">
               <LocationSearchInput value={store.destination} onSelect={store.setDestination} />
               <DateRangePopover value={store.dates} onChange={store.setDates} />
             </div>
             <FieldLabel>Travelers</FieldLabel>
-            <div className="flex flex-wrap gap-2">
-              {TRAVELER_OPTIONS.map((opt) => (
-                <KeywordChip
-                  key={opt.value}
-                  label={opt.label}
-                  active={store.travelers === opt.value}
-                  onClick={() => store.setTravelers(opt.value as TravelerCount)}
-                />
-              ))}
+            <div className="flex flex-col">
+              <TravelerSelect value={store.travelers} onChange={store.setTravelers} />
             </div>
           </Section>
 
-          <Section index={3} eyebrow="The mood" title="What's your vibe?">
+          <Section index={3} title="What's your vibe?">
             {VIBE_CATEGORIES.map((cat) => (
               <div key={cat.label} className="mt-6 first:mt-0">
                 <FieldLabel>{cat.label}</FieldLabel>
@@ -254,39 +246,39 @@ function PlanPageInner() {
             ))}
           </Section>
 
-          <Section index={4} eyebrow="Where you'll stay" title="Pick a vibe for the bed">
+          <Section index={4} title="Accommodation">
             <AccommodationGrid value={store.accommodation} onChange={store.setAccommodation} />
           </Section>
 
-          <Section index={5} eyebrow="How you travel" title="The pace">
+          <Section index={5} title="The Pace">
             <div className="flex flex-wrap gap-2">
               {PACE_OPTIONS.map((opt) => (
                 <KeywordChip
                   key={opt}
                   label={opt}
                   active={store.pace === opt}
-                  onClick={() => store.setPace(opt as PaceType)}
+                  onClick={() => store.setPace(store.pace === opt ? null : (opt as PaceType))}
                   variant="terracotta"
                 />
               ))}
             </div>
           </Section>
 
-          <Section index={6} eyebrow="The wallet" title="Budget tier">
+          <Section index={6} title="The Budget">
             <div className="flex flex-wrap gap-2">
               {BUDGET_TIERS.map((tier) => (
                 <KeywordChip
                   key={tier}
                   label={tier}
                   active={store.budget === tier}
-                  onClick={() => store.setBudget(tier as BudgetTier)}
+                  onClick={() => store.setBudget(store.budget === tier ? null : (tier as BudgetTier))}
                   variant="terracotta"
                 />
               ))}
             </div>
           </Section>
 
-          <Section index={7} eyebrow="The fine print" title="Anything else?">
+          <Section index={7} title="Any other preferences">
             <TextArea
               value={store.preferences}
               onChange={(e) => store.setPreferences(e.target.value)}
@@ -299,23 +291,16 @@ function PlanPageInner() {
   );
 }
 
-function Section({
-  index,
-  eyebrow,
-  title,
-  children,
-}: {
+interface SectionProps {
   index: number;
-  eyebrow: string;
   title: string;
   children: React.ReactNode;
-}) {
+}
+
+function Section({ index, title, children }: SectionProps) {
   return (
     <StaggerSection index={index}>
-      <span className="font-mono text-[13px] font-medium uppercase tracking-[0.14em] text-[var(--color-ember)]">
-        {eyebrow}
-      </span>
-      <h2 className="mt-2 mb-6 font-display text-[32px] font-bold leading-tight text-[var(--color-ink)]">
+      <h2 className="mb-6 text-display-m text-[var(--color-ink)]">
         {title}
       </h2>
       {children}
@@ -323,21 +308,30 @@ function Section({
   );
 }
 
-function FieldLabel({ children }: { children: React.ReactNode }) {
+interface FieldLabelProps {
+  children: React.ReactNode;
+}
+
+function FieldLabel({ children }: FieldLabelProps) {
   return (
-    <p className="mt-6 mb-3 font-mono text-[11px] uppercase tracking-[0.12em] text-[var(--color-muted)]">
+    <p className="mt-6 mb-3 font-mono text-[10px] uppercase tracking-[0.12em] text-[var(--color-muted)]">
       {children}
     </p>
   );
 }
 
-function SummaryRow({ label, value }: { label: string; value: string }) {
+interface SummaryRowProps {
+  label: string;
+  value: string;
+}
+
+function SummaryRow({ label, value }: SummaryRowProps) {
   return (
     <div className="mt-4 flex items-baseline justify-between gap-3 border-t border-dashed border-[var(--color-border-soft)] pt-4">
       <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-[var(--color-muted)]">
         {label}
       </span>
-      <span className="truncate text-right font-sans text-[13px] font-medium text-[var(--color-ink)]">
+      <span className="truncate text-right text-label-m text-[var(--color-ink)]">
         {value}
       </span>
     </div>

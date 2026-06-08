@@ -16,6 +16,10 @@ interface PostcardCardProps {
   exiting?: boolean;
 }
 
+function cleanTag(t: string): string {
+  return t.replace(/^[^\p{L}\p{N}\s]+\s*/u, "").trim();
+}
+
 export function PostcardCard({ stop, onLockToggle, onRemove, exiting }: PostcardCardProps) {
   return (
     <motion.article
@@ -86,23 +90,26 @@ export function PostcardCard({ stop, onLockToggle, onRemove, exiting }: Postcard
         <p className="mt-2 text-[14px] leading-[1.55] text-white/55">{stop.description}</p>
       )}
 
-      {stop.tags.length > 0 && (
-        <div className="mt-4 flex flex-wrap gap-2">
-          {stop.tags.map((t) => (
-            <span
-              key={t}
-              className={cn(
-                "rounded-[100px] px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.06em]",
-                stop.locked
-                  ? "bg-[var(--color-ember)]/20 text-[var(--color-peach)]"
-                  : "bg-white/10 text-white/65",
-              )}
-            >
-              {t}
-            </span>
-          ))}
-        </div>
-      )}
+      {(() => {
+        const cleanedTags = [...new Set(stop.tags.map(cleanTag).filter(Boolean))];
+        return cleanedTags.length > 0 ? (
+          <div className="mt-4 flex flex-wrap gap-2">
+            {cleanedTags.map((t) => (
+              <span
+                key={t}
+                className={cn(
+                  "rounded-[100px] px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.06em]",
+                  stop.locked
+                    ? "bg-[var(--color-ember)]/20 text-[var(--color-peach)]"
+                    : "bg-white/10 text-white/65",
+                )}
+              >
+                {t}
+              </span>
+            ))}
+          </div>
+        ) : null;
+      })()}
     </motion.article>
   );
 }

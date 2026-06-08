@@ -76,7 +76,10 @@ export function useResearchPoller(tripId: string, onComplete: () => void) {
         backoffMs = POLL_INTERVAL;
         if (cancelled || completed) return;
 
+        // Backend reported a permanent failure — stop polling. Without setting
+        // `stopped`, the interval keeps re-hitting a dead job every 2s forever.
         if (data.status === "failed") {
+          stopped = true;
           setHasError(true);
           return;
         }

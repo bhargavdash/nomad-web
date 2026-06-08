@@ -10,7 +10,6 @@ interface ActiveTripCardProps {
   dateFrom: string;
   dateTo: string;
   duration: number;
-  stats: { places: number; tips: number; photoStops: number };
   href?: string;
   /** Self-hosted hero photo — the same image shown on the trip detail hero. */
   imageUrl?: string | null;
@@ -24,7 +23,6 @@ export function ActiveTripCard({
   dateFrom,
   dateTo,
   duration,
-  stats,
   href = "#",
   imageUrl,
   priority,
@@ -34,7 +32,7 @@ export function ActiveTripCard({
     <Link
       href={href}
       className={cn(
-        "group relative block overflow-hidden rounded-[24px] bg-[var(--color-navy)] p-8 shadow-active-trip transition-transform duration-200 hover:-translate-y-1",
+        "group relative flex min-h-[380px] flex-col justify-end overflow-hidden rounded-[24px] bg-[var(--color-navy)] p-8 shadow-active-trip transition-transform duration-200 hover:-translate-y-1",
         className,
       )}
     >
@@ -48,12 +46,8 @@ export function ActiveTripCard({
         sizes="(max-width: 1024px) 100vw, 1376px"
         priority={priority}
       />
-      {/* Readability overlay — keeps the cream/white text legible over any photo. */}
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-[var(--color-navy)]/95 via-[var(--color-navy)]/80 to-[var(--color-navy)]/50" />
-
-      {/* Decorative glows */}
-      <div className="pointer-events-none absolute -top-20 -right-20 h-64 w-64 rounded-full bg-[var(--color-ember)]/25 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-24 -left-16 h-72 w-72 rounded-full bg-[var(--color-peach)]/15 blur-3xl" />
+      {/* Subtle scrim — transparent top, light navy at bottom for text legibility */}
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-[var(--color-navy)]/35 to-[var(--color-navy)]/65" />
 
       <div className="relative">
         <div className="flex items-center gap-2">
@@ -71,12 +65,6 @@ export function ActiveTripCard({
           {dateFrom} → {dateTo} · {duration} days
         </p>
 
-        <div className="mt-8 grid grid-cols-3 gap-4 border-t border-white/10 pt-6">
-          <Stat value={stats.places} label="Places" />
-          <Stat value={stats.tips} label="Tips" />
-          <Stat value={stats.photoStops} label="Photo stops" />
-        </div>
-
         <div className="mt-8 inline-flex items-center gap-2 text-[14px] font-medium text-[var(--color-cream)] group-hover:text-[var(--color-ember)] transition-colors">
           Open itinerary
           <span className="transition-transform group-hover:translate-x-0.5">→</span>
@@ -86,13 +74,3 @@ export function ActiveTripCard({
   );
 }
 
-function Stat({ value, label }: { value: number; label: string }) {
-  return (
-    <div>
-      <div className="font-display text-[32px] font-extrabold text-[var(--color-cream)]">{value}</div>
-      <div className="mt-1 font-mono text-[10px] uppercase tracking-[0.1em] text-white/35">
-        {label}
-      </div>
-    </div>
-  );
-}

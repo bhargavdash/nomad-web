@@ -48,23 +48,24 @@ export default function SignUpPage() {
   };
 
   const handleGoogle = async () => {
-    const { error } = await supabase().auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
-    });
-    if (error) toast.error(error.message);
+    try {
+      const { error } = await supabase().auth.signInWithOAuth({
+        provider: "google",
+        options: { redirectTo: `${window.location.origin}/auth/callback` },
+      });
+      if (error) toast.error(error.message);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Google sign-in failed.");
+    }
   };
 
   return (
-    <AuthShell heroQuery="bali rice terraces morning">
-      <span className="font-mono text-[11px] uppercase tracking-[0.12em] text-[var(--color-ember)]">
-        Start the wander
+    <AuthShell>
+      <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-[var(--color-ember)]">
+        Start your adventure here
       </span>
 
-      <h1 className="mt-3 font-display text-[44px] font-extrabold leading-[1.05] text-[var(--color-ink)]">
-        Make travel <span className="text-wander">personal</span> again.
-      </h1>
-      <p className="mt-3 text-[15px] text-[var(--color-muted)]">
+      <p className="mt-3 text-body-m text-[var(--color-muted)]">
         We&apos;ll read the internet for you. Tell us the vibe, get the itinerary.
       </p>
 
@@ -119,7 +120,7 @@ export default function SignUpPage() {
         Continue with Google
       </Button>
 
-      <p className="mt-8 text-[13px] text-[var(--color-muted)]">
+      <p className="mt-8 text-body-xs text-[var(--color-muted)]">
         Already have an account?{" "}
         <Link
           href="/signin"

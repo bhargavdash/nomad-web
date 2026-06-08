@@ -1,15 +1,11 @@
 import { create } from "zustand";
 
-export type TravelerCount = "1" | "2" | "3+" | "large";
+// Stringified integer count of travellers, "1".."10". A string (not a number)
+// so it maps directly to the API/agent wire format and the Prisma `String?`
+// column without conversion. Older trips may still carry legacy "3+"/"large".
+export type TravelerCount = string;
 
-export type AccommodationType =
-  | "Boutique Villa"
-  | "Luxury Hotel"
-  | "Eco Lodge"
-  | "Homestay"
-  | "Airbnb"
-  | "Hostel"
-  | "Custom Stay";
+export type AccommodationType = "Hostel" | "Budget Hotel" | "Luxury Hotel" | "Airbnb / Homestay";
 
 export type PaceType = "Slow & Soulful" | "Balanced" | "Action-Packed";
 
@@ -38,8 +34,8 @@ interface TripPlanActions {
   setTravelers: (value: TravelerCount) => void;
   toggleVibe: (vibe: string) => void;
   setAccommodation: (value: AccommodationType | null) => void;
-  setPace: (value: PaceType) => void;
-  setBudget: (value: BudgetTier) => void;
+  setPace: (value: PaceType | null) => void;
+  setBudget: (value: BudgetTier | null) => void;
   setPreferences: (value: string) => void;
   setCurrentTripId: (id: string) => void;
   reset: () => void;
@@ -69,8 +65,8 @@ export const useTripPlanStore = create<TripPlanState & TripPlanActions>()((set) 
         : [...state.selectedVibes, vibe],
     })),
   setAccommodation: (value) => set({ accommodation: value ?? null }),
-  setPace: (value) => set({ pace: value }),
-  setBudget: (value) => set({ budget: value }),
+  setPace: (value) => set({ pace: value ?? null }),
+  setBudget: (value) => set({ budget: value ?? null }),
   setPreferences: (value) => set({ preferences: value }),
   setCurrentTripId: (id) => set({ currentTripId: id }),
   reset: () => set(INITIAL_STATE),

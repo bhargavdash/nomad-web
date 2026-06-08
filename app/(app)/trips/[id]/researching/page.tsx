@@ -17,32 +17,57 @@ export default function ResearchingPage() {
   const { progress, progressLabel, stats, activeSource, discovery, phase, hasError, isRateLimited, retryAfterMs, retry } =
     useResearchPoller(tripId, () => router.replace(`/trips/${tripId}`));
 
+  // When research has stopped (hard failure or rate limit) we hide the
+  // animated ticker entirely — a pulsing orb stuck at 0% next to an error
+  // reads as broken. Show a single, clear status instead.
+  const isStopped = hasError || isRateLimited;
+
+  const eyebrow = hasError
+    ? "Research stopped"
+    : isRateLimited
+      ? "Server busy"
+      : "AI is reading the internet";
+
   return (
     <div className="relative mx-auto flex min-h-[calc(100vh-72px)] max-w-[1100px] flex-col items-center px-8 py-16">
       {/* Eyebrow */}
       <span className="font-mono text-[11px] uppercase tracking-[0.16em] text-[var(--color-ember)]">
-        AI is reading the internet
+        {eyebrow}
       </span>
 
       <h1 className="mt-4 max-w-[700px] text-center font-display text-[48px] font-extrabold leading-[1.05] text-[var(--color-ink)]">
-        Building your <span className="text-wander">trip</span>.
+        {hasError ? (
+          <>We couldn&apos;t finish this <span className="text-wander">trip</span>.</>
+        ) : isRateLimited ? (
+          <>Just a <span className="text-wander">moment</span>.</>
+        ) : (
+          <>Building your <span className="text-wander">trip</span>.</>
+        )}
       </h1>
       <p className="mt-3 max-w-[560px] text-center text-[15px] text-[var(--color-muted)]">
-        Scanning YouTube, Reddit, blogs and maps. This usually takes 30–90 seconds.
+        {hasError
+          ? "The research run didn't complete. Your trip details are saved — retry below, or head back and start again."
+          : isRateLimited
+            ? "You've started a lot of trips in a short window. Your trip is saved — wait a moment and retry."
+            : "Scanning YouTube, Reddit, blogs and maps. This usually takes 30–90 seconds."}
       </p>
 
-      {/* Pulsing orb */}
-      <div className="relative mt-14 mb-12 h-[200px] w-[200px]">
-        <div className="absolute inset-0 animate-orb-ring rounded-full bg-[var(--color-ember)]/30" />
-        <div
-          className="absolute inset-0 animate-orb-ring rounded-full bg-[var(--color-peach)]/30"
-          style={{ animationDelay: "1s" }}
-        />
-        <div className="animate-orb-pulse relative h-full w-full rounded-full bg-gradient-to-br from-[var(--color-ember)] to-[var(--color-peach)] shadow-[0_20px_60px_rgba(196,98,58,0.35)]" />
-      </div>
+      {/* Pulsing orb — only while research is actually running */}
+      {!isStopped && (
+        <div className="relative mt-14 mb-12 h-[200px] w-[200px]">
+          <div className="absolute inset-0 animate-orb-ring rounded-full bg-[var(--color-ember)]/30" />
+          <div
+            className="absolute inset-0 animate-orb-ring rounded-full bg-[var(--color-peach)]/30"
+            style={{ animationDelay: "1s" }}
+          />
+          <div className="animate-orb-pulse relative h-full w-full rounded-full bg-gradient-to-br from-[var(--color-ember)] to-[var(--color-peach)] shadow-[0_20px_60px_rgba(196,98,58,0.35)]" />
+        </div>
+      )}
 
       {/* Progress label + bar */}
       <div className="w-full max-w-[640px]">
+        {!isStopped && (
+          <>
         <div className="flex items-center justify-between font-mono text-[11px] uppercase tracking-[0.12em]">
           <span className="text-[var(--color-muted)]">{progressLabel}</span>
           <span className="text-[var(--color-ember)]">{Math.round(progress)}%</span>
@@ -86,18 +111,21 @@ export default function ResearchingPage() {
               <p className="mt-2 text-[14px] leading-[1.55] text-[var(--color-muted)]">
                 {discovery.body}
               </p>
-              {discovery.tags.length > 0 && (
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {discovery.tags.map((t) => (
-                    <span
-                      key={t}
-                      className="rounded-[100px] bg-[var(--color-ember-light)] px-2.5 py-1 text-[11px] font-medium text-[var(--color-ember-dim)]"
-                    >
-                      {t}
-                    </span>
-                  ))}
-                </div>
-              )}
+              {(() => {
+                const cleanedTags = [...new Set(discovery.tags.map((t) => t.replace(/^[^\p{L}\p{N}\s]+\s*/u, "").trim()).filter(Boolean))];
+                return cleanedTags.length > 0 ? (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {cleanedTags.map((t) => (
+                      <span
+                        key={t}
+                        className="rounded-[100px] bg-[var(--color-ember-light)] px-2.5 py-1 text-[11px] font-medium text-[var(--color-ember-dim)]"
+                      >
+                        {t}
+                      </span>
+                    ))}
+                  </div>
+                ) : null;
+              })()}
             </motion.div>
           </AnimatePresence>
         </div>
@@ -131,29 +159,45 @@ export default function ResearchingPage() {
             );
           })}
         </div>
+          </>
+        )}
 
         {isRateLimited && (
-          <div className="mt-6 rounded-[16px] border-[1.5px] border-amber-300 bg-amber-50 p-5 text-center">
+          <div className="mt-10 rounded-[20px] border-[1.5px] border-amber-300 bg-amber-50 p-8 text-center">
             <p className="font-mono text-[11px] uppercase tracking-[0.12em] text-amber-600">
               ⏱ Server busy
             </p>
-            <p className="mt-2 text-[14px] text-amber-800">
-              {`Too many requests. Your trip is saved — wait about ${retryAfterMs ? Math.ceil(retryAfterMs / 60_000) : 1} minute${retryAfterMs && retryAfterMs <= 60_000 ? '' : 's'} and retry.`}
+            <p className="mt-3 text-[15px] text-amber-800">
+              {`Too many requests. Your trip is saved — wait about ${retryAfterMs ? Math.ceil(retryAfterMs / 60_000) : 1} minute${retryAfterMs && retryAfterMs <= 60_000 ? '' : 's'}, then retry.`}
             </p>
-            <Button variant="primary" size="sm" onClick={retry} className="mt-3">
-              Retry
-            </Button>
+            <div className="mt-5 flex items-center justify-center gap-3">
+              <Button variant="primary" size="md" onClick={retry}>
+                Retry research
+              </Button>
+              <Button variant="outline" size="md" onClick={() => router.push("/plan")}>
+                Back to planning
+              </Button>
+            </div>
           </div>
         )}
 
         {hasError && !isRateLimited && (
-          <div className="mt-6 rounded-[16px] border-[1.5px] border-red-300 bg-red-50 p-5 text-center">
-            <p className="text-[14px] text-red-700">
-              We hit a snag reading sources. The trip is saved — you can try again.
+          <div className="mt-10 rounded-[20px] border-[1.5px] border-red-300 bg-red-50 p-8 text-center">
+            <p className="font-mono text-[11px] uppercase tracking-[0.12em] text-red-600">
+              ⚠ Research failed
             </p>
-            <Button variant="primary" size="sm" onClick={retry} className="mt-3">
-              Retry
-            </Button>
+            <p className="mt-3 text-[15px] text-red-700">
+              We couldn&apos;t finish reading sources for this trip. This is usually temporary —
+              your trip details are saved, so you can start a fresh plan or come back to it later.
+            </p>
+            <div className="mt-5 flex items-center justify-center gap-3">
+              <Button variant="primary" size="md" onClick={() => router.push("/plan")}>
+                Start a new plan
+              </Button>
+              <Button variant="outline" size="md" onClick={() => router.push("/trips")}>
+                Back to my trips
+              </Button>
+            </div>
           </div>
         )}
       </div>

@@ -169,6 +169,7 @@ Props: `value: DateRange`, `onChange: (dates: DateRange) => void`
 ### `AccommodationGrid`
 Props: `value: AccommodationType | null`, `onChange: (value: AccommodationType) => void`
 
-- Grid of accommodation type cards with icons
-- Selected state: ember border + bg tint
-- Options: Boutique Villa, Luxury Hotel, Eco Lodge, Homestay, Airbnb, Hostel, Custom Stay
+- Single-column, single-select radio list (no icons) — circle radio + label per row
+- Enforced single select (`role="radiogroup"`); selecting a row replaces the prior choice
+- Selected state: ember border + ember-light bg tint + filled ember radio dot
+- Options: Hostel, Budget Hotel, Luxury Hotel, Airbnb / Homestay
