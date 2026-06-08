@@ -1,6 +1,9 @@
 import { create } from "zustand";
 
-export type TravelerCount = "1" | "2" | "3+" | "large";
+// Stringified integer count of travellers, "1".."10". A string (not a number)
+// so it maps directly to the API/agent wire format and the Prisma `String?`
+// column without conversion. Older trips may still carry legacy "3+"/"large".
+export type TravelerCount = string;
 
 export type AccommodationType =
   | "Boutique Villa"

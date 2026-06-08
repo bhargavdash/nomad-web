@@ -12,6 +12,7 @@ import { TextArea } from "@/components/ui/input";
 import { KeywordChip } from "@/components/brand/KeywordChip";
 import { LocationSearchInput } from "@/components/plan/LocationSearchInput";
 import { DateRangePopover } from "@/components/plan/DateRangePopover";
+import { TravelerSelect } from "@/components/plan/TravelerSelect";
 import { AccommodationGrid } from "@/components/plan/AccommodationGrid";
 import { TrendingPickNote } from "@/components/plan/TrendingPickNote";
 import { StaggerSection } from "@/components/layout/StaggerSection";
@@ -20,12 +21,10 @@ import {
   VIBE_CATEGORIES,
   PACE_OPTIONS,
   BUDGET_TIERS,
-  TRAVELER_OPTIONS,
 } from "@/data/placeholders";
 import { api } from "@/lib/api";
 import {
   useTripPlanStore,
-  type TravelerCount,
   type PaceType,
   type BudgetTier,
 } from "@/store/tripPlanStore";
@@ -223,15 +222,8 @@ function PlanPageInner() {
               <DateRangePopover value={store.dates} onChange={store.setDates} />
             </div>
             <FieldLabel>Travelers</FieldLabel>
-            <div className="flex flex-wrap gap-2">
-              {TRAVELER_OPTIONS.map((opt) => (
-                <KeywordChip
-                  key={opt.value}
-                  label={opt.label}
-                  active={store.travelers === opt.value}
-                  onClick={() => store.setTravelers(opt.value as TravelerCount)}
-                />
-              ))}
+            <div className="flex flex-col">
+              <TravelerSelect value={store.travelers} onChange={store.setTravelers} />
             </div>
           </Section>
 
