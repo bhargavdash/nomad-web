@@ -114,3 +114,69 @@ Once a batch is ready to port, use this doc as the spec for the mobile work.
 - The updated `country` field will flow through to mobile automatically when the backend serves fresh data
 
 ---
+
+## Fix 4 — Researching screen: remove fake polling stats grid
+
+**Date:** 2026-06-08
+**Web files changed:**
+- `app/(app)/trips/[id]/researching/page.tsx`
+
+**What changed:**
+
+1. **Stats grid removed entirely** from the polling/research screen:
+   - Removed the `grid grid-cols-3` block that showed "Places found", "Local tips", and "Photo stops" with animated numeric values
+   - Removed the `Stat` helper component that rendered each number + label
+   - Removed `stats` from the `useResearchPoller` destructuring
+
+2. **Why:** The stats shown during polling were hardcoded fake values from `_PACER_STEPS` in the Python agent (`routes/research.py`) — they were animation filler, not real data. Real stats (computed from the actual itinerary) are shown correctly in the itinerary view (`/trips/[id]`). Showing fake incrementing numbers during research was misleading.
+
+3. **What remains:**
+   - The discovery card (shows real mid-flight discoveries from `merge_node`) stays
+   - The progress bar + phase label stays
+   - The source rows (YouTube / Reddit / Blogs / Maps scanning status) stay
+   - The real stats (`statsPlaces`, `statsTips`, `statsPhotoStops`) are still shown in the itinerary view — no change there
+
+**Mobile replication notes:**
+- Find the equivalent of the researching/polling screen in `nomad-mobile` (the screen shown while the trip is being generated)
+- If it shows a similar stats grid with place count / tip count / photo stop count during polling, remove it — those numbers are hardcoded animation filler, not real data
+- The discovery card animation and progress indicator are genuine (real data from `merge_node`) and should be kept
+- The real stats are available once the trip is ready; only show them on the itinerary/trip detail screen
+
+---
+
+## Fix 5 — Agent: pace, accommodation, and traveler count semantic enrichment
+
+**Date:** 2026-06-08
+**Web files changed:** None — this is a backend-only change in `nomad-agent`
+
+**What changed (nomad-agent):**
+
+1. **Pace semantic enrichment** (`app/agents/synthesizer.py`, `app/skills/synthesizer.md`):
+   - Added `_PACE_HINT` dict — maps each pace value to behavioral guidance injected into the synthesizer voice cues:
+     - `"Slow & Soulful"`: linger 2–3 h per stop, start ~2 h after sunrise, favour sit-in spots (cafés, gardens, markets)
+     - `"Balanced"`: start ~1 h after sunrise, vary density day-to-day, always include a proper meal
+     - `"Action-Packed"`: start at/within 30 min of sunrise, keep stops ≤ 1.5 h, feasibility check (total time + travel must fit before sunset)
+   - Added P1–P3 pace rules to `synthesizer.md` as explicit system prompt rules — the LLM now enforces stop durations, day start times (relative to `geo_brief` sunrise), and feasibility for Action-Packed
+
+2. **Accommodation semantic enrichment** (`synthesizer.py`, `synthesizer.md`):
+   - Added `_ACCOMMODATION_HINT` dict — maps the 4 accommodation types to neighbourhood/context guidance:
+     - `"Hostel"` → social/party area, cheap eats
+     - `"Budget Hotel"` → functional base, street food
+     - `"Airbnb / Homestay"` → local residential neighbourhood, morning market
+     - `"Luxury Hotel"` → upscale base, hotel amenities (spa/pool/rooftop) are valid stop options
+   - Added P4 rule: `stay_by_city` must match accommodation type; budget always caps spend
+
+3. **Traveler count semantic enrichment** (`synthesizer.py`, `synthesizer.md`):
+   - Added dynamic `travelers_hint` computed from the numeric count:
+     - 1 → solo (solo-friendly spots, safety/logistics note)
+     - 2 → couple (1–2 romantic moments woven in)
+     - 3–4 → small group (venues that seat small groups)
+     - 5+ → large group (capacity venues, booking notes)
+   - Added P5 rule to `synthesizer.md` encoding these behaviours
+
+**Mobile replication notes:**
+- No mobile code changes needed — the enrichment happens entirely in the Python synthesizer agent
+- The mobile app calls the same backend, so all trips generated after this commit automatically benefit from the improved pace, accommodation, and group-size handling
+- Verify the mobile plan screen sends the correct string values: `travelers` as a numeric string (e.g. `"2"`), `accommodation` as exactly one of `"Hostel" | "Budget Hotel" | "Airbnb / Homestay" | "Luxury Hotel"`, `pace` as `"Slow & Soulful" | "Balanced" | "Action-Packed"`
+
+---
