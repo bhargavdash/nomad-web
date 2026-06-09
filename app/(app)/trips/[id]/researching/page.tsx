@@ -14,7 +14,7 @@ export default function ResearchingPage() {
   const router = useRouter();
   const tripId = params.id;
 
-  const { progress, progressLabel, stats, activeSource, discovery, phase, hasError, isRateLimited, retryAfterMs, retry } =
+  const { progress, progressLabel, activeSource, discovery, phase, hasError, isRateLimited, retryAfterMs, retry } =
     useResearchPoller(tripId, () => router.replace(`/trips/${tripId}`));
 
   // When research has stopped (hard failure or rate limit) we hide the
@@ -79,13 +79,6 @@ export default function ResearchingPage() {
             animate={{ width: `${progress}%` }}
             transition={{ duration: 0.6, ease: "easeOut" }}
           />
-        </div>
-
-        {/* Stats */}
-        <div className="mt-8 grid grid-cols-3 gap-4 rounded-[20px] border-[1.5px] border-[var(--color-border-soft)] bg-white p-6">
-          <Stat value={stats.places} label="Places found" />
-          <Stat value={stats.tips} label="Local tips" />
-          <Stat value={stats.photoStops} label="Photo stops" />
         </div>
 
         {/* Discovery card */}
@@ -205,13 +198,3 @@ export default function ResearchingPage() {
   );
 }
 
-function Stat({ value, label }: { value: number; label: string }) {
-  return (
-    <div className="text-center">
-      <div className="font-display text-[36px] font-extrabold text-[var(--color-ink)]">{value}</div>
-      <div className="mt-1 font-mono text-[10px] uppercase tracking-[0.12em] text-[var(--color-muted)]">
-        {label}
-      </div>
-    </div>
-  );
-}

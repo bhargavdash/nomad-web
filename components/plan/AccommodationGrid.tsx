@@ -6,7 +6,7 @@ import type { AccommodationType } from "@/store/tripPlanStore";
 import { cn } from "@/lib/utils";
 
 interface AccommodationGridProps {
-  value: AccommodationType | null;
+  value: AccommodationType;
   onChange: (value: AccommodationType) => void;
 }
 
@@ -39,7 +39,7 @@ export function AccommodationGrid({ value, onChange }: AccommodationGridProps) {
                 <span className="h-2.5 w-2.5 rounded-full bg-[var(--color-ember)]" />
               )}
             </span>
-            <span className="font-display text-[15px] font-bold text-[var(--color-ink)]">
+            <span className="text-label-m text-[var(--color-ink)]">
               {label}
             </span>
           </button>
