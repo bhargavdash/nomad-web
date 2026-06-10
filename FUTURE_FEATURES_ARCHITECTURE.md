@@ -618,6 +618,205 @@ cache undermines FI-1's quality.
 
 ---
 
-*Generated from a read-through of all four repos on 2026-06-04. FI-6 added 2026-06-06. No code has been modified. File lives in
+---
+
+## FI-8 — Women Solo Travellers Safety Filter
+
+> **Verdict:** ✅ **Feasible · Medium · Free-tier safe.** ~6–7 SP. No new external APIs. Synthesizer prompt adds ~100 tokens (negligible). This is a **responsible-AI feature** that biases the itinerary toward safety, community, and female-focused options — strong portfolio signal.
+
+**Goal:** When a user marks "I'm a woman traveling solo", the AI itinerary prioritizes female-friendly accommodations, social spots (group tours, female-led businesses, hostels with solo communities), and surfaces practical safety tips on Day 1.
+
+### Design decision: safety + agency, not fear
+
+Two approaches were considered:
+
+| Approach | Tone | Risk | Verdict |
+|----------|------|------|---------|
+| **A. Safety-first (chosen)** — emphasize practical tips (theft avoidance, transport, neighborhoods), female-focused options, social stops. Let the itinerary be *slightly* more conservative (fewer 3am bar crawls, more group tours), but still adventurous. | Empowering. "Here's what you need to know." | Slight risk of being boring or defensive. | **Chosen** — real feedback from solo female travellers shows they want context, not coddling. |
+| B. Fear-heavy — "avoid this neighborhood", "don't go out after 7pm" — safety as constraint. | Restrictive. Undermines agency. | High risk of offensive tone + missed experiences. | Rejected — defeats the purpose of a travel planner. |
+
+Approach **A** treats `women_solo_traveller=true` as a *personalization signal*, not a risk flag. The synthesizer gets the same research pool; it weights certain discovery types higher and adds advice.
+
+### How — per repo
+
+**`nomad-agent`** (the bulk of the work)
+
+- **`app/schemas.py`** — add to `TripParams`:
+  ```python
+  women_solo_traveller: bool = False
+  ```
+  No fancy validation needed — just a boolean flag passed through.
+
+- **`app/signals.py`** — add to `TravelSignals`:
+  ```python
+  @dataclass
+  class TravelSignals:
+      # ... existing fields ...
+      women_solo_traveller: bool = False  # passed from trip_params
+      safety_context: dict = field(default_factory=dict)  # e.g. { "region": "delhi", "avoid_transport": ["auto-rickshaw", "late-night-walk"], "best_neighborhoods": [...] }
+  ```
+  
+  In `extract_signals(trip_params)`:
+  ```python
+  def extract_signals(...) -> TravelSignals:
+      # ...
+      women_solo_traveller = trip_params.women_solo_traveller
+      safety_context = _build_safety_context(destination, region, crowd_level) if women_solo_traveller else {}
+      # ...
+      return TravelSignals(
+          # ... other fields ...
+          women_solo_traveller=women_solo_traveller,
+          safety_context=safety_context,
+      )
+  
+  def _build_safety_context(destination: str, region: str, crowd_level: str) -> dict:
+      """Region-specific safety context. Destination-aware, not stereotyping."""
+      # Example: Delhi (Oct-Feb) → { "avoid_transport": [...], "dress_context": "conservative in some areas", "helpful_resources": ["female police hotline", ...] }
+      # Example: Tokyo → { "transport": "safe 24h", "neighborhoods": "all safe", "etiquette": "respectful photography" }
+      # Build a lookup table per region; populate from research.
+  ```
+
+- **`app/agents/youtube_shorts.py`** — modify query construction:
+  ```python
+  if signals.women_solo_traveller:
+      query = f"{destination} {season_modifier} solo female travel {vibe_modifier}"
+  else:
+      query = f"{destination} {season_modifier} {vibe_modifier} travel"
+  ```
+  The YouTube agent already extracts "vibe descriptors" and "photo-worthy". With this query tweak, it surfaces Shorts from solo female creators, female guides, all-female group content, etc.
+
+- **`app/agents/reddit.py`** — similar query adjustment:
+  ```python
+  if signals.women_solo_traveller:
+      query = f"women solo travel {destination} safety tips"
+      subreddits = ["r/solotravel", "r/TwoXChromosomes", f"r/{destination}", ...]
+  ```
+  Reddit is gold for safety tips + honest critiques. Females on Reddit are vocal about transport, neighborhoods, respectful behavior. This surfaces that.
+
+- **`app/agents/google_blog.py`** — search query:
+  ```python
+  if signals.women_solo_traveller:
+      query = f"female solo traveller {destination} {season} safety guide neighborhood tips"
+  else:
+      query = f"{destination} {season} travel guide"
+  ```
+
+- **`app/agents/synthesizer.py`** — new prompt rule (add to the full prompt rules):
+  ```
+  Rule: Women solo traveller context
+  IF signals.women_solo_traveller:
+    1. Prioritize discoveries mentioning: "female guide", "women-owned", "women-only hostel", "group tour", "social hour", "community".
+    2. Weight discoveries in safe_neighborhoods higher (from signals.safety_context).
+    3. ON DAY 1: Include a "Safety Context" section in day.description (not a warning, but practical: "Safe to walk at night in this area, Uber available, dress conservatively in temples").
+    4. Avoid discoveries that are pure nightlife/3am bars — not forbidden, but deprioritized in favor of social + community spots.
+    5. If a discovery lacks context (e.g. generic tourist site), check if signals.safety_context flags it as problematic; if yes, drop it and sub a safer alternative from the pool.
+  ```
+  This is ~8–10 lines of new logic in the synthesizer's LLM prompt, not code.
+
+- **LLM factory** — no new role needed. Existing `"synthesizer"` role picks up the expanded prompt.
+
+**`nomad-api`** (schema + routing)
+
+- **Schema migration** — add to `Trip` (Prisma):
+  ```prisma
+  womenSoloTraveller Boolean @default(false) @map("women_solo_traveller")
+  ```
+  Hand-rolled SQL in `supabase/migrations/<date>_add_women_solo_traveller.sql`, run via Supabase SQL Editor.
+
+- **Zod schema** (`src/types/index.ts`):
+  ```ts
+  women_solo_traveller?: boolean;
+  ```
+
+- **Routes** — `createTripSchema` + trip response already passes all fields through. No new endpoint needed; the flag is part of the normal `POST /trips` body.
+
+**`nomad-web`** (form UI)
+
+- **`store/tripPlanStore.ts`** — add field:
+  ```ts
+  womenSoloTraveller: boolean = false;
+  ```
+
+- **`components/plan/PlanTrip.tsx`** — add a checkbox in the form, probably grouped with "travelers = 1" (solo context):
+  ```tsx
+  {travelers === 1 && (
+    <label className="flex items-center gap-2">
+      <input type="checkbox" checked={womenSoloTraveller} onChange={(e) => setWomenSoloTraveller(e.target.checked)} />
+      <span>I'm a woman traveling solo</span>
+    </label>
+  )}
+  ```
+  Conditional: only show the checkbox when travelers = 1 (group trips don't need this context). Matches design pattern of the existing form.
+
+**`nomad-mobile`** (form UI, mirrors web)
+
+- **`src/store/tripPlanStore.ts`** — add field (same as web).
+- **`src/screens/PlanTrip.tsx`** — add a checkbox with matching styling (inside the travelers section).
+
+### Free-tier impact
+**Zero.** 
+- No new external API calls — all three research agents adjust their *queries*, not their API usage.
+- Synthesizer prompt grows by ~100 tokens (safety rule + weighting), still well under the 1M token/day Cerebras cap.
+- One boolean column in Postgres — negligible storage.
+
+### Risks & mitigations
+
+**Risk: Stereotyping in the synthesizer prompt.**
+- Example: "women travellers like spas and shopping" — reductive and offensive.
+- Mitigation: The prompt must be **practical, not prescriptive**. Focus on information (neighborhoods to avoid at 2am), not on activities. Safety tips, not gendered activity recommendations.
+- Mitigation: Test the output on diverse destinations (Delhi, Tokyo, Bangkok, Lagos, Barcelona) to ensure the itinerary is still adventurous and personalized, not a generic "safe route".
+
+**Risk: Destination-specific safety context goes stale or wrong.**
+- Example: "Bangalore is unsafe after dark" in 2026 — might be outdated or inaccurate.
+- Mitigation: The safety context is derived from `signals.region` + `destination`, not hardcoded. The synthesizer's own knowledge + the research agents' discoveries (especially Reddit, which is real-time) provide the authoritative signal. The `_build_safety_context` is a *hint*, not a rule.
+- If wrong, it's caught in user feedback — low risk.
+
+**Risk: Over-weighting safety kills adventure.**
+- Example: every stop gets downweighted except hotels + guided tours.
+- Mitigation: The prompt rule is *biased*, not *exclusive*. Solo climbing, night markets, street food — all still in the pool. The synthesizer just ranks discoveries mentioning "community" or "female guide" higher. The itinerary should still feel adventurous; safety is context, not a cage.
+
+**Risk: Binary checkbox can't capture nuance.**
+- Example: "safe for women" depends on ability, religion, sexuality, class, disability. A checkbox is reductive.
+- Mitigation: Accept the MVP. This is a single-axis enhancement for solo female travellers (a real, underserved cohort). Future FIs can add "LGBTQ+ friendly" (FI-9), "disability accessible" (FI-10), "faith-accommodating" (FI-11) as separate toggles or a richer preference model.
+
+**Risk: Safety tips on Day 1 feel preachy.**
+- Example: "Theft is common, keep valuables hidden" — tone-deaf and anxiety-inducing.
+- Mitigation: The prompt must frame safety as *agency*, not fear. "Keep ID copies in a separate pocket" (practical), not "Theft is rampant" (fearful). Test the tone in real feedback.
+
+### Testing / success criteria
+
+- **Unit test:** `test_extract_signals` adds a case with `women_solo_traveller=True` → `TravelSignals.safety_context` is populated.
+- **Integration test:** Run `scripts/run_pipeline.py` with a sample trip (`women_solo_traveller=true`) → inspect output:
+  - ≥2 discoveries per day mention "female", "group", "women-only", or "guide" (discovery tags).
+  - Day 1's description includes a "Safety Context" line.
+  - No stop is a 3am bar (unless it's the only social option on Day 3+).
+- **Qualitative:** A solo female traveller (real user) tests the itinerary for a destination she knows well (e.g. Delhi, Bangkok, Lisbon) and confirms:
+  - The stops are still adventurous and interesting.
+  - Safety tips feel practical, not preachy.
+  - Neighborhoods recommended are ones she'd actually visit.
+
+### Effort breakdown
+
+| Sub-task | SP |
+|---|---|
+| `TripParams` + `TravelSignals` schema additions + `_build_safety_context` helper | 1 SP |
+| Research agent query modifiers (youtube, reddit, google) | 1 SP |
+| Synthesizer prompt rule + weighting logic (prompt engineering, not code) | 1.5 SP |
+| Web form (checkbox + store wiring) | 0.5 SP |
+| Mobile form (checkbox + store wiring) | 0.5 SP |
+| Migration + Zod schema (nomad-api) | 0.5 SP |
+| Integration test + real output validation | 0.5 SP |
+| **Total** | **~6–7 SP** |
+
+### Build order
+
+- **Independent** — can ship any time after MVP.
+- **Good pairing:** Could bundle with **FI-3 (Edit Trip)** — both involve form + signal extraction work. Or ship standalone.
+- **Precedent:** After FI-6 (smart cache) if you want the cache to also bucket by `women_solo_traveller` (nice-to-have enhancement).
+- **Before FI-4 (Expenses).** A safety-aware trip context pairs well with group dynamics in expenses.
+
+---
+
+*Generated from a read-through of all four repos on 2026-06-04. FI-6 added 2026-06-06. FI-8 (Women Solo Travellers) added 2026-06-10. No code has been modified. File lives in
 `nomad-web/` per request; the canonical feature backlog remains the
-[Nomad sprint board](file:///Users/bhargav/DevBrain/wiki/projects/nomad-board.md) (FI-1…FI-6).*
+[Nomad sprint board](file:///Users/bhargav/DevBrain/wiki/projects/nomad-board.md) (FI-1…FI-8).*
