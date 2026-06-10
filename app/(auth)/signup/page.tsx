@@ -24,12 +24,13 @@ export default function SignUpPage() {
     if (submitting) return;
     setSubmitting(true);
     try {
+      // No emailRedirectTo — confirmation is done in-app via 6-digit OTP code
+      // ({{ .Token }} in the Supabase email template), not a magic link.
       const { data, error } = await supabase().auth.signUp({
         email,
         password,
         options: {
           data: { full_name: name },
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
         },
       });
       if (error) {
@@ -37,10 +38,17 @@ export default function SignUpPage() {
         toast.error(error.message);
         return;
       }
+      // Supabase obfuscates duplicate signups: an already-registered email
+      // returns a fake user with an empty identities array and sends NO email.
+      if (data.user && data.user.identities?.length === 0) {
+        setErrorShake((k) => k + 1);
+        toast.error("An account with this email already exists. Sign in instead.");
+        return;
+      }
       if (data.session) {
         router.replace("/home");
       } else {
-        toast.success("Check your email to confirm your account.");
+        router.push(`/verify-email?email=${encodeURIComponent(email)}`);
       }
     } finally {
       setSubmitting(false);
