@@ -211,6 +211,7 @@ export default function ItineraryPage() {
       {(data.trip.routeSummary ||
         data.trip.transportStrategy ||
         data.trip.budgetEstimate ||
+        data.trip.currencyAdvice ||
         (data.trip.seasonalTips && data.trip.seasonalTips.length > 0) ||
         (data.trip.stayByCity && Object.keys(data.trip.stayByCity).length > 0)) && (
         <section className="mx-auto max-w-[1200px] px-8 py-10">
@@ -223,6 +224,9 @@ export default function ItineraryPage() {
             )}
             {data.trip.budgetEstimate && (
               <OverviewCard label="Rough budget" value={data.trip.budgetEstimate} />
+            )}
+            {data.trip.currencyAdvice && (
+              <OverviewCard label="Currency tips" value={data.trip.currencyAdvice} />
             )}
             {data.trip.seasonalTips && data.trip.seasonalTips.length > 0 && (
               <OverviewCard label="Good to know" value={data.trip.seasonalTips.join(" · ")} />
