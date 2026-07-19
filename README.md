@@ -42,7 +42,8 @@ npm run dev
 |----------|---------|
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Supabase anon key |
-| `NEXT_PUBLIC_API_URL` | Backend API base URL (defaults to `http://localhost:3000`) |
+| `NEXT_PUBLIC_API_URL` | Optional. Leave empty (default) so the app calls the same-origin `/api/*` path, reverse-proxied to the backend. Set to an absolute URL only to bypass the proxy and hit a backend directly. |
+| `API_PROXY_TARGET` | Backend origin the `/api/*` rewrite forwards to (server-side only). Prod: the Railway backend URL. Dev: a local API such as `http://localhost:3001`. |
 
 ---
 

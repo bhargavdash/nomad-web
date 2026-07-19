@@ -138,9 +138,13 @@ nomad-web/
 │   │   ├── coding-standards.md # always-loaded universal rules
 │   │   ├── design-tokens.md    # path-scoped — CSS variables & typography
 │   │   └── component-specs.md  # path-scoped — component specs
+│   ├── agents/
+│   │   └── design-reviewer.md  # auto-invoked after any component/page task
 │   ├── skills/
-│   │   ├── build-component.md  # /build-component workflow
-│   │   └── build-page.md       # /build-page workflow
+│   │   ├── build-component/SKILL.md  # /build-component workflow
+│   │   ├── build-page/SKILL.md       # /build-page workflow
+│   │   ├── new-api-route/SKILL.md    # /new-api-route workflow
+│   │   └── react-doctor/SKILL.md     # /doctor — lint/a11y/bundle/architecture triage
 │   └── settings.local.json
 ├── app/                        # Next.js App Router
 ├── components/                 # React components
@@ -177,7 +181,6 @@ This project has a knowledge graph at `graphify-out/` with god nodes, community 
 | After completing any feature or bug fix | `react-doctor` skill — required quality gate before marking done |
 | Any codebase question: "where is X", "how does Y work", file relationships | `graphify query "<question>"` before opening source files |
 | Docs for Next.js, React, Tailwind v4, Framer Motion, Supabase, Lucide, Zustand, Axios, Sonner | `mcp__context7__resolve-library-id` → `mcp__context7__query-docs` — never WebSearch for library docs |
-| Building new UI from a description, spec, or sketch | `mcp__magic__21st_magic_component_builder` before building manually |
 | Viewing or implementing Figma designs | `mcp__claude_ai_Figma__get_design_context` + `mcp__claude_ai_Figma__get_screenshot` |
 | Planning work that spans >3 files or >1 hour | `superpowers:writing-plans` → `superpowers:executing-plans` |
 | Non-obvious bug with unclear root cause | `superpowers:systematic-debugging` skill |

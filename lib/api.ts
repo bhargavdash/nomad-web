@@ -1,7 +1,13 @@
 import axios, { AxiosError, type AxiosRequestConfig } from "axios";
 import { supabase } from "@/lib/supabase/client";
 
-const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000";
+// Default to a same-origin, relative base (`/api/v1`). In production the browser
+// hits `https://<vercel-domain>/api/*`, which Vercel — and `next dev` locally —
+// rewrites to the Railway backend (see `rewrites()` in next.config.ts). Railway
+// is never called directly, so ISPs that fail to resolve *.up.railway.app can't
+// break the app. Set NEXT_PUBLIC_API_URL to an ABSOLUTE url only to bypass the
+// proxy and hit a backend directly (e.g. a local API during development).
+const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "";
 
 export const api = axios.create({
   baseURL: `${apiUrl}/api/v1`,
